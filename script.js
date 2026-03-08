@@ -1,0 +1,387 @@
+// Balayan, Batangas Configuration
+const balayanCenter = [13.9380, 120.7320]; 
+const balayanBrgys = [
+    "Caloocan", "Lanatan", "San Roque", "Ermita", "Gumamela", 
+    "Navotas", "Palikpikan", "Sampaga", "Santol", "San Pioquinto",
+    "Dalig", "Langgangan", "Canda", "Pooc", "Tanggoy"
+]; 
+const kidsPerBrgy = 40; 
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const statuses = ["Normal", "Underweight", "Stunted", "Obese"];
+
+// FILIPINO NAME GENERATOR
+const firstNames = ["Juan", "Maria", "Jose", "Luz", "Pedro", "Ana", "Miguel", "Rosa", "Carlos", "Teresa", "Luis", "Carmen", "Mateo", "Sofia", "Diego", "Elena"];
+const lastNames = ["Santos", "Reyes", "Cruz", "Bautista", "Ocampo", "Garcia", "Mendoza", "Torres", "Aquino", "Ramos", "Villanueva", "Mercado"];
+
+function getRandomName() {
+    return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+}
+
+// Generate Master Data
+const masterData = {};
+const brgyCoords = {};
+
+balayanBrgys.forEach((brgy, index) => {
+    masterData[brgy] = [];
+    brgyCoords[brgy] = [
+        balayanCenter[0] + (Math.random() * 0.08 - 0.04),
+        balayanCenter[1] + (Math.random() * 0.08 - 0.04)
+    ];
+
+    let statusPool = [];
+    if (index % 3 === 0) statusPool = ["Normal", "Normal", "Normal", "Underweight", "Obese"]; 
+    else if (index % 3 === 1) statusPool = ["Normal", "Normal", "Underweight", "Stunted", "Obese"]; 
+    else statusPool = ["Normal", "Underweight", "Underweight", "Stunted", "Obese", "Obese"]; 
+
+    for (let k = 1; k <= kidsPerBrgy; k++) {
+        const history = [];
+        for(let m=0; m<6; m++) { history.push(Math.random() > 0.2); } 
+
+        const assignedStatus = statusPool[Math.floor(Math.random() * statusPool.length)];
+
+        masterData[brgy].push({
+            id: `B${index}-K${k}`,
+            name: getRandomName(),
+            parents: `${getRandomName()} & ${getRandomName()}`,
+            age: Math.floor(Math.random() * 60) + 1, 
+            status: assignedStatus,
+            sitio: "Purok " + Math.ceil(Math.random() * 5),
+            brgy: brgy,
+            vitaminTaken: Math.random() > 0.3,
+            history: history 
+        });
+    }
+});
+
+function getVitaminsByAge(age) {
+    if (age <= 6) return ["Vit A (100k IU)", "Newborn Screening"];
+    if (age <= 23) return ["Vit A (200k IU)", "Iron Drops", "Deworming"];
+    return ["Vit A (High Dose)", "Deworming", "Zinc Supplement"];
+}
+
+// GLOBAL FILTER ENGINE
+function filterDataList(list, ageRange, status, vitStatus) {
+    let filtered = list;
+    if (ageRange && ageRange !== 'all') {
+        if(ageRange === '0-11') filtered = filtered.filter(k => k.age <= 11);
+        else if(ageRange === '12-23') filtered = filtered.filter(k => k.age >= 12 && k.age <= 23);
+        else if(ageRange === '24-59') filtered = filtered.filter(k => k.age >= 24);
+    }
+    if (status && status !== 'all') filtered = filtered.filter(k => k.status === status);
+    if (vitStatus && vitStatus !== 'all') filtered = filtered.filter(k => k.vitaminTaken === (vitStatus === 'Complete'));
+    return filtered;
+}
+
+// VIEW SWITCHING 
+function switchView(viewName) {
+    if(document.getElementById('trends-view')) {
+        document.getElementById('trends-view').style.display = viewName === 'trends' ? 'block' : 'none';
+        document.getElementById('records-view').style.display = viewName === 'records' ? 'block' : 'none';
+        
+        const menuItems = document.querySelectorAll('#sidebar-menu li');
+        menuItems.forEach(item => item.classList.remove('active'));
+        
+        if(viewName === 'trends') {
+            menuItems[0].classList.add('active');
+            updateTrends();
+        }
+        if(viewName === 'records') {
+            menuItems[1].classList.add('active');
+            updateRecords();
+        }
+    }
+}
+
+function initFilters() {
+    const selects = [document.getElementById('trendBrgy'), document.getElementById('filterBrgy')];
+    let options = '<option value="all">All Barangays</option>';
+    balayanBrgys.forEach(b => options += `<option value="${b}">Brgy. ${b}</option>`);
+    
+    selects.forEach(select => {
+        if(select) select.innerHTML = options;
+    });
+}
+
+// ==========================================
+// FULL MAP LOGIC (map.html)
+// ==========================================
+let fullMap;
+
+function initFullMap() {
+    const mapEl = document.getElementById('full-city-map');
+    if (!mapEl) return; 
+
+    fullMap = L.map('full-city-map').setView(balayanCenter, 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(fullMap);
+
+    balayanBrgys.forEach(brgy => {
+        const kids = masterData[brgy];
+        const normal = kids.filter(k => k.status === 'Normal').length;
+        const mal = kids.filter(k => k.status === 'Underweight' || k.status === 'Stunted').length;
+        const obese = kids.filter(k => k.status === 'Obese').length;
+        
+        const totalKids = kids.length;
+        const badCases = mal + obese;
+        const caseRatio = badCases / totalKids;
+        
+        let markerColor = "#2e7d32"; 
+        if (caseRatio >= 0.55) markerColor = "#d32f2f"; 
+        else if (caseRatio >= 0.40) markerColor = "#fbc02d"; 
+
+        L.circle(brgyCoords[brgy], { color: markerColor, fillColor: markerColor, fillOpacity: 0.5, radius: 500 }).addTo(fullMap);
+        const marker = L.marker(brgyCoords[brgy]).addTo(fullMap);
+        marker.on('click', () => { openInfoPanel(brgy, normal, mal, obese, badCases, markerColor, totalKids); });
+    });
+}
+
+function openInfoPanel(brgy, normal, mal, obese, badCases, colorCode, totalKids) {
+    const panel = document.getElementById('brgy-info-panel');
+    const content = document.getElementById('panel-content');
+    
+    let suggestionClass = "green";
+    let suggestionText = "GOOD: The majority of children in this barangay are healthy. Maintain current feeding and vitamin programs.";
+    
+    if(colorCode === "#d32f2f") {
+        suggestionClass = "red";
+        suggestionText = "URGENT ACTION NEEDED: Health issues heavily outweigh normal cases. Immediate intervention required.";
+    } else if (colorCode === "#fbc02d") {
+        suggestionClass = "yellow";
+        suggestionText = "WARNING: Health issues are almost equal to normal cases. Monitor closely and schedule targeted parental health seminars.";
+    }
+
+    content.innerHTML = `
+        <h2 style="color: #1b5e20; margin-bottom: 5px;">Brgy. ${brgy}</h2>
+        <p style="color: #666; font-size: 13px; margin-bottom: 20px;">📍 Balayan, Batangas</p>
+        <div class="total-highlight">
+            <h3>${totalKids}</h3>
+            <span>Total Registered Children</span>
+        </div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <h3 style="margin-bottom: 15px; font-size: 14px; color: #333;">Health Status Breakdown</h3>
+            <div class="stat-row"><span>🟢 Normal:</span> <strong style="color: #2e7d32">${normal}</strong></div>
+            <div class="stat-row"><span>🔴 Malnourished:</span> <strong style="color: #d32f2f">${mal}</strong></div>
+            <div class="stat-row"><span>🟡 Obese:</span> <strong style="color: #fbc02d">${obese}</strong></div>
+            <div class="stat-row" style="border:none; padding-top: 10px; margin-bottom: 0;">
+                <span><strong>Total Health Cases:</strong></span> <strong>${badCases}</strong>
+            </div>
+        </div>
+        <h3 style="font-size: 15px; color: #333;">System Recommendation</h3>
+        <div class="suggestion-box ${suggestionClass}">${suggestionText}</div>
+    `;
+    panel.classList.add('open');
+}
+
+function closeInfoPanel() { if(document.getElementById('brgy-info-panel')) document.getElementById('brgy-info-panel').classList.remove('open'); }
+
+// ==========================================
+// DASHBOARD LOGIC (dashboard.html)
+// ==========================================
+
+function generateChartData(targetValue) {
+    if (targetValue === 0) return months.map(() => 0);
+    const data = [];
+    let current = Math.max(1, Math.floor(targetValue * 0.4)); 
+    for(let i=0; i<11; i++) {
+        data.push(current);
+        current += Math.floor((Math.random() * 5) - 1); 
+        if(current < 0) current = 0;
+    }
+    data.push(targetValue); 
+    return data;
+}
+
+let healthChart;
+let comparisonChart; // NEW VARIABLE FOR BAR CHART
+
+function updateTrends() {
+    if(!document.getElementById('trendBrgy')) return; 
+
+    const brgy = document.getElementById('trendBrgy').value;
+    const ageRange = document.getElementById('trendAge').value;
+    const selectedStatus = document.getElementById('trendStatus').value;
+
+    let baseKids = brgy === 'all' ? Object.values(masterData).flat() : masterData[brgy];
+    let filteredKids = filterDataList(baseKids, ageRange, selectedStatus, 'all');
+
+    const countNormal = filteredKids.filter(k => k.status === 'Normal').length;
+    const countMal = filteredKids.filter(k => k.status === 'Underweight' || k.status === 'Stunted').length;
+    const countObese = filteredKids.filter(k => k.status === 'Obese').length;
+
+    document.getElementById('statNormal').innerText = countNormal;
+    document.getElementById('statMal').innerText = countMal;
+    document.getElementById('statObese').innerText = countObese;
+
+    // --- 1. UPDATE LINE CHART ---
+    const ctxLine = document.getElementById('healthTrendChart').getContext('2d');
+    if (healthChart) healthChart.destroy();
+    const datasets = [];
+
+    if(selectedStatus === 'all' || selectedStatus === 'Normal') {
+        datasets.push({ label: 'Normal', data: generateChartData(countNormal), borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.1)', fill: true, tension: 0.4 });
+    }
+    if(selectedStatus === 'all' || selectedStatus === 'Underweight' || selectedStatus === 'Stunted') {
+        datasets.push({ label: 'Malnourished', data: generateChartData(countMal), borderColor: '#d32f2f', backgroundColor: 'rgba(211,47,47,0.1)', fill: true, tension: 0.4 });
+    }
+    if(selectedStatus === 'all' || selectedStatus === 'Obese') {
+        datasets.push({ label: 'Obese', data: generateChartData(countObese), borderColor: '#fbc02d', backgroundColor: 'rgba(251,192,45,0.1)', fill: true, tension: 0.4 });
+    }
+
+    healthChart = new Chart(ctxLine, {
+        type: 'line',
+        data: { labels: months, datasets: datasets },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+
+    // --- 2. UPDATE BAR CHART (COMPARISON) ---
+    const ctxBar = document.getElementById('brgyComparisonChart').getContext('2d');
+    if (comparisonChart) comparisonChart.destroy();
+
+    const barData = [];
+    const barColors = [];
+
+    balayanBrgys.forEach(b => {
+        let list = masterData[b];
+        
+        // Apply Age Filter explicitly for the bar calculation
+        if(ageRange !== 'all') {
+            if(ageRange === '0-11') list = list.filter(k => k.age <= 11);
+            else if(ageRange === '12-23') list = list.filter(k => k.age >= 12 && k.age <= 23);
+            else if(ageRange === '24-59') list = list.filter(k => k.age >= 24);
+        }
+
+        let barCount = 0;
+        let baseColor = '';
+
+        if (selectedStatus === 'all') {
+            barCount = list.filter(k => k.status !== 'Normal').length; // Show Health Cases by default if 'All'
+            baseColor = '#f57c00'; 
+        } else {
+            barCount = list.filter(k => k.status === selectedStatus).length;
+            if (selectedStatus === 'Normal') baseColor = '#2e7d32';
+            else if (selectedStatus === 'Obese') baseColor = '#fbc02d';
+            else baseColor = '#d32f2f';
+        }
+
+        // Highlight Logic: If a specific brgy is selected, dim the others
+        if (brgy !== 'all' && brgy !== b) {
+            baseColor += '40'; // Adds transparency to hex color
+        }
+
+        barData.push(barCount);
+        barColors.push(baseColor);
+    });
+
+    let barLabel = selectedStatus === 'all' ? 'Total Health Cases (Malnourished + Obese)' : `Total ${selectedStatus}`;
+
+    comparisonChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: balayanBrgys,
+            datasets: [{
+                label: barLabel,
+                data: barData,
+                backgroundColor: barColors,
+                borderRadius: 4
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            scales: { 
+                y: { beginAtZero: true, ticks: { precision: 0 } },
+                x: { ticks: { font: { size: 10 } } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function updateRecords() {
+    if(!document.getElementById('filterBrgy')) return;
+    
+    const brgy = document.getElementById('filterBrgy').value;
+    const ageRange = document.getElementById('filterAge').value;
+    const status = document.getElementById('filterStatus').value;
+    const vitStatus = document.getElementById('filterVitamin').value;
+
+    let baseList = brgy === 'all' ? Object.values(masterData).flat() : masterData[brgy];
+    let filteredList = filterDataList(baseList, ageRange, status, vitStatus);
+
+    const missedTotal = filteredList.filter(k => !k.vitaminTaken).length;
+    document.getElementById('statMissedRecords').innerText = missedTotal;
+
+    document.getElementById('records-table-body').innerHTML = filteredList.slice(0, 100).map(k => {
+        let vitaminDisplay = "";
+        if (k.vitaminTaken) {
+            vitaminDisplay = `<span class="badge complete">✓ Complete</span>`;
+        } else {
+            const requiredVits = getVitaminsByAge(k.age);
+            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 12px; margin-bottom: 3px;"><b>✘</b> ${v}</div>`).join('');
+        }
+
+        return `
+            <tr>
+                <td><strong>${k.name}</strong><br><small>${k.brgy}</small></td>
+                <td>${k.age} mos</td>
+                <td><span style="color: ${k.status === 'Normal' ? '#2e7d32' : (k.status === 'Obese' ? '#fbc02d' : '#d32f2f')}; font-weight:600;">${k.status}</span></td>
+                <td>${k.sitio}</td>
+                <td>${vitaminDisplay}</td>
+                <td><button class="view-btn" onclick="openProfile('${k.brgy}', '${k.id}')">View Profile</button></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// PROFILE MODAL
+function openProfile(brgy, id) {
+    const kid = masterData[brgy].find(k => k.id === id);
+    const vits = getVitaminsByAge(kid.age);
+    
+    let statusColor = "#2e7d32";
+    if(kid.status === "Obese") statusColor = "#fbc02d";
+    if(kid.status === "Underweight" || kid.status === "Stunted") statusColor = "#d32f2f";
+
+    let historyHTML = "";
+    const pastMonthsNames = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
+    kid.history.forEach((took, i) => {
+        historyHTML += `<div class="month-box ${took ? 'green' : 'red'}">${pastMonthsNames[i]}<br>${took ? '✓' : '✘'}</div>`;
+    });
+
+    document.getElementById('modal-data').innerHTML = `
+        <div class="profile-header">
+            <div class="profile-avatar">👶</div>
+            <div class="profile-title"><h2>${kid.name}</h2><p>📍 Brgy. ${kid.brgy}, ${kid.sitio}</p></div>
+        </div>
+        <div class="profile-grid">
+            <div>
+                <div class="info-box"><span class="info-label">Parents / Guardian</span><span class="info-value">${kid.parents}</span></div>
+                <div class="info-box"><span class="info-label">Age</span><span class="info-value">${kid.age} Months</span></div>
+                <div class="info-box"><span class="info-label">Nutritional Status</span><span class="info-value" style="color: ${statusColor}; font-weight: bold;">${kid.status}</span></div>
+            </div>
+            <div>
+                <div class="vitamin-card" style="border-left: 4px solid ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}">
+                    <h4>Current Month Vitamins</h4>
+                    <ul class="vit-list">
+                        ${vits.map(v => `<li><span style="color: ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}">${kid.vitaminTaken ? '✅' : '❌'}</span> ${v}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="history-tracker">
+                    <h4>Past 6 Months Compliance Insight</h4>
+                    <div class="months-grid">${historyHTML}</div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('profileModal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('profileModal').style.display = 'none'; }
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    initFilters();
+    initFullMap(); 
+    if(document.getElementById('trendBrgy')) updateTrends(); 
+});

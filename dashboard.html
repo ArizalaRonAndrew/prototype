@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weigh To Go - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-wrapper">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3>Weigh To Go ⚖️</h3>
+                <p style="color:#aaa; font-size: 12px; text-align:center;">Balayan, Batangas</p>
+            </div>
+            <ul id="sidebar-menu">
+                <li class="active" onclick="switchView('trends')">📊 Health Trends</li>
+                <li onclick="switchView('records')">📋 Masterlist</li>
+                <li onclick="window.location.href='map.html'">🗺️ Barangay Map</li>
+                <li class="logout-item" onclick="location.href='index.html'">🚪 Logout</li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            
+            <div id="trends-view" class="view">
+                <header class="dashboard-header">
+                    <div class="header-titles">
+                        <h1>Health Trends Monitoring</h1>
+                        <p>Visual representation and comparison of nutritional status.</p>
+                    </div>
+                    <div class="filters-container">
+                        <select id="trendBrgy" onchange="updateTrends()"></select>
+                        <select id="trendAge" onchange="updateTrends()">
+                            <option value="all">All Ages</option>
+                            <option value="0-11">0-11 Months</option>
+                            <option value="12-23">12-23 Months</option>
+                            <option value="24-59">24-59 Months</option>
+                        </select>
+                        <select id="trendStatus" onchange="updateTrends()">
+                            <option value="all">All Statuses</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Underweight">Underweight</option>
+                            <option value="Stunted">Stunted</option>
+                            <option value="Obese">Obese</option>
+                        </select>
+                    </div>
+                </header>
+
+                <section class="stats-cards">
+                    <div class="card normal">
+                        <div class="card-icon">💚</div>
+                        <div>
+                            <h4>Filtered Normal</h4>
+                            <p id="statNormal" class="stat-num">0</p>
+                        </div>
+                    </div>
+                    <div class="card mal">
+                        <div class="card-icon">⚠️</div>
+                        <div>
+                            <h4>Filtered Malnourished</h4>
+                            <p id="statMal" class="stat-num">0</p>
+                        </div>
+                    </div>
+                    <div class="card obese">
+                        <div class="card-icon">🍔</div>
+                        <div>
+                            <h4>Filtered Obese</h4>
+                            <p id="statObese" class="stat-num">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="charts-wrapper">
+                    <section class="chart-section">
+                        <h3 id="chartTitle">Nutritional Trends Over Time</h3>
+                        <div class="canvas-holder">
+                            <canvas id="healthTrendChart"></canvas>
+                        </div>
+                    </section>
+
+                    <section class="chart-section">
+                        <h3 id="barChartTitle">Barangay Comparison (Cases Based on Filter)</h3>
+                        <div class="canvas-holder">
+                            <canvas id="brgyComparisonChart"></canvas>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="records-view" class="view" style="display: none;">
+                <header class="dashboard-header">
+                    <div class="header-titles">
+                        <h1>Barangay Masterlist</h1>
+                        <p>Detailed list of children and vitamin compliance.</p>
+                    </div>
+                    <div class="filters-container">
+                        <select id="filterBrgy" onchange="updateRecords()"></select>
+                        <select id="filterAge" onchange="updateRecords()">
+                            <option value="all">All Ages</option>
+                            <option value="0-11">0-11 Months</option>
+                            <option value="12-23">12-23 Months</option>
+                            <option value="24-59">24-59 Months</option>
+                        </select>
+                        <select id="filterStatus" onchange="updateRecords()">
+                            <option value="all">All Statuses</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Underweight">Underweight</option>
+                            <option value="Stunted">Stunted</option>
+                            <option value="Obese">Obese</option>
+                        </select>
+                        <select id="filterVitamin" onchange="updateRecords()">
+                            <option value="all">Vitamin Status (All)</option>
+                            <option value="Complete">Complete Intake</option>
+                            <option value="Missed">Missed Intake</option>
+                        </select>
+                    </div>
+                </header>
+
+                <section class="stats-cards">
+                    <div class="card missed-kpi">
+                        <div class="card-icon">💊</div>
+                        <div>
+                            <h4>Missed Vitamins (Based on Filters)</h4>
+                            <p id="statMissedRecords" class="stat-num">0</p>
+                            <small>Children needing follow-up</small>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="list-section">
+                    <table class="nutri-table">
+                        <thead>
+                            <tr>
+                                <th>Name of Child</th>
+                                <th>Age</th>
+                                <th>Status</th>
+                                <th>Sitio/Purok</th>
+                                <th>Vitamin Compliance</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-table-body"></tbody>
+                    </table>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content profile-modal-width">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="modal-data"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

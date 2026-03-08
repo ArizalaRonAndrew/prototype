@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weigh To Go - Barangay Map</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-body" style="overflow: hidden;">
+    <div class="dashboard-wrapper">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3>Weigh To Go ⚖️</h3>
+                <p style="color:#aaa; font-size: 12px; text-align:center;">Balayan, Batangas</p>
+            </div>
+            <ul id="sidebar-menu">
+                <li onclick="window.location.href='dashboard.html'">📊 Health Trends</li>
+                <li onclick="window.location.href='dashboard.html'">📋 Masterlist</li>
+                <li class="active">🗺️ Barangay Map</li>
+                <li class="logout-item" onclick="location.href='index.html'">🚪 Logout</li>
+            </ul>
+        </nav>
+
+        <main class="main-content" style="padding: 0; display: flex; position: relative;">
+            
+            <div id="full-city-map" style="flex-grow: 1; height: 100vh; z-index: 1;"></div>
+
+            <div id="brgy-info-panel" class="info-panel">
+                <button class="close-panel-btn" onclick="closeInfoPanel()">×</button>
+                <div id="panel-content">
+                    <h2 style="color: #888;">Select a Barangay</h2>
+                    <p>Click on any marker on the map to view the total number of children, health breakdown, and recommended actions.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
