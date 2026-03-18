@@ -19,6 +19,7 @@
             <ul id="sidebar-menu">
                 <li class="active" onclick="switchView('trends')">📊 Health Trends</li>
                 <li onclick="switchView('records')">📋 Masterlist</li>
+                <li onclick="switchView('reports')">📈 Health Reports</li>
                 <li onclick="window.location.href='map.html'">🗺️ Barangay Map</li>
                 <li class="logout-item" onclick="location.href='index.html'">🚪 Logout</li>
             </ul>
@@ -147,6 +148,34 @@
                     </table>
                 </section>
             </div>
+
+            <div id="reports-view" class="view" style="display: none;">
+                <header class="dashboard-header">
+                    <div class="header-titles">
+                        <h1>Barangay Health Reports</h1>
+                        <p>Total reports of health issues per barangay, ordered by the highest number of cases.</p>
+                    </div>
+                </header>
+
+                <section class="list-section">
+                    <table class="nutri-table">
+                        <thead>
+                            <tr>
+                                <th>Barangay Name</th>
+                                <th>Total Registered</th>
+                                <th>Normal</th>
+                                <th>Underweight</th>
+                                <th>Stunted</th>
+                                <th>Obese</th>
+                                <th style="color: #d32f2f;">Total Health Issues</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body">
+                            </tbody>
+                    </table>
+                </section>
+            </div>
+            
         </main>
     </div>
 

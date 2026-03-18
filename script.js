@@ -78,6 +78,10 @@ function switchView(viewName) {
         document.getElementById('trends-view').style.display = viewName === 'trends' ? 'block' : 'none';
         document.getElementById('records-view').style.display = viewName === 'records' ? 'block' : 'none';
         
+        if (document.getElementById('reports-view')) {
+            document.getElementById('reports-view').style.display = viewName === 'reports' ? 'block' : 'none';
+        }
+        
         const menuItems = document.querySelectorAll('#sidebar-menu li');
         menuItems.forEach(item => item.classList.remove('active'));
         
@@ -88,6 +92,10 @@ function switchView(viewName) {
         if(viewName === 'records') {
             menuItems[1].classList.add('active');
             updateRecords();
+        }
+        if(viewName === 'reports') {
+            menuItems[2].classList.add('active');
+            updateReportsView();
         }
     }
 }
@@ -193,7 +201,7 @@ function generateChartData(targetValue) {
 }
 
 let healthChart;
-let comparisonChart; // NEW VARIABLE FOR BAR CHART
+let comparisonChart; 
 
 function updateTrends() {
     if(!document.getElementById('trendBrgy')) return; 
@@ -332,6 +340,48 @@ function updateRecords() {
             </tr>
         `;
     }).join('');
+}
+
+// REPORTS VIEW LOGIC
+function updateReportsView() {
+    if(!document.getElementById('reports-table-body')) return;
+
+    // Calculate data for each barangay
+    const reportData = balayanBrgys.map(brgy => {
+        const kids = masterData[brgy];
+        const total = kids.length;
+        
+        const normal = kids.filter(k => k.status === 'Normal').length;
+        const underweight = kids.filter(k => k.status === 'Underweight').length;
+        const stunted = kids.filter(k => k.status === 'Stunted').length;
+        const obese = kids.filter(k => k.status === 'Obese').length;
+        
+        // Total health issues = Underweight + Stunted + Obese
+        const totalIssues = underweight + stunted + obese; 
+
+        return { brgy, total, normal, underweight, stunted, obese, totalIssues };
+    });
+
+    // Sort the array by highest total health issues (Descending order)
+    reportData.sort((a, b) => b.totalIssues - a.totalIssues);
+
+    // Inject into the HTML Table
+    const tbody = document.getElementById('reports-table-body');
+    tbody.innerHTML = reportData.map(data => `
+        <tr>
+            <td><strong>Brgy. ${data.brgy}</strong></td>
+            <td>${data.total}</td>
+            <td><span style="color: #2e7d32; font-weight: 600;">${data.normal}</span></td>
+            <td>${data.underweight}</td>
+            <td>${data.stunted}</td>
+            <td>${data.obese}</td>
+            <td>
+                <span style="color: #d32f2f; font-weight: bold; font-size: 16px;">
+                    ${data.totalIssues}
+                </span>
+            </td>
+        </tr>
+    `).join('');
 }
 
 // PROFILE MODAL

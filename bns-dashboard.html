@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BNS Portal - Weigh To Go</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="bns-style.css">
+</head>
+<body class="dashboard-body">
+    <div class="dashboard-wrapper">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3>Weigh To Go ⚖️</h3>
+                <p style="color:#aaa; font-size: 12px; text-align:center;">BNS Portal</p>
+                <h4 id="sidebar-brgy-name" style="text-align:center; margin-top:10px; color:#4caf50;">Brgy. Caloocan</h4>
+            </div>
+            <ul id="sidebar-menu">
+                <li class="active" onclick="switchBNSView('masterlist')">📋 Kids Masterlist</li>
+                <li onclick="switchBNSView('reports')">📊 Monthly Report</li>
+                <li class="logout-item" onclick="alert('Logging out...')">🚪 Logout</li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            
+            <div id="masterlist-view" class="view">
+                <header class="dashboard-header">
+                    <div class="header-titles">
+                        <h1 id="header-brgy-title">Barangay Masterlist</h1>
+                        <p>Manage and track children from 0-59 months old.</p>
+                    </div>
+                    <div class="filters-container" style="flex-wrap: wrap;">
+                        <input type="text" id="searchChild" placeholder="🔍 Search child name..." oninput="renderMasterlist()" style="width: 200px;">
+                        <select id="filterPurok" onchange="renderMasterlist()">
+                            <option value="all">All Purok / Sitio</option>
+                            <option value="Purok 1">Purok 1</option>
+                            <option value="Purok 2">Purok 2</option>
+                            <option value="Purok 3">Purok 3</option>
+                            <option value="Purok 4">Purok 4</option>
+                            <option value="Purok 5">Purok 5</option>
+                        </select>
+                        <select id="filterStatus" onchange="renderMasterlist()">
+                            <option value="all">All Checkup Status</option>
+                            <option value="checked">🟢 Checked This Month</option>
+                            <option value="pending">🔴 Pending This Month</option>
+                        </select>
+                        <button class="add-btn" onclick="openAddChildModal()">+ Add New Child</button>
+                    </div>
+                </header>
+
+                <section class="list-section">
+                    <table class="nutri-table">
+                        <thead>
+                            <tr>
+                                <th>Name of Child</th>
+                                <th>Purok</th>
+                                <th>Age (Months)</th>
+                                <th>Current Status</th>
+                                <th>This Month's Checkup</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bns-table-body"></tbody>
+                    </table>
+                </section>
+            </div>
+
+            <div id="reports-view" class="view" style="display: none;">
+                <header class="dashboard-header">
+                    <div class="header-titles">
+                        <h1>Monthly Barangay Report</h1>
+                        <p>Summary of nutritional cases for the current month.</p>
+                    </div>
+                    <button class="add-btn" style="background:#2196f3;" onclick="window.print()">🖨️ Print Report</button>
+                </header>
+
+                <section class="stats-cards">
+                    <div class="card normal">
+                        <div class="card-icon">👶</div>
+                        <div>
+                            <h4>Total Registered</h4>
+                            <p id="rep-total" class="stat-num">0</p>
+                        </div>
+                    </div>
+                    <div class="card normal">
+                        <div class="card-icon">✅</div>
+                        <div>
+                            <h4>Normal Status</h4>
+                            <p id="rep-normal" class="stat-num">0</p>
+                        </div>
+                    </div>
+                    <div class="card mal">
+                        <div class="card-icon">⚠️</div>
+                        <div>
+                            <h4>Malnourished / Stunted</h4>
+                            <p id="rep-mal" class="stat-num">0</p>
+                        </div>
+                    </div>
+                    <div class="card obese">
+                        <div class="card-icon">🍔</div>
+                        <div>
+                            <h4>Obese</h4>
+                            <p id="rep-obese" class="stat-num">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="list-section">
+                    <h3 style="margin-bottom: 15px; color: #1b5e20;">Detailed Case List (Issues Only)</h3>
+                    <table class="nutri-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Purok</th>
+                                <th>Issue / Status</th>
+                                <th>Last Weighed</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body"></tbody>
+                    </table>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="addChildModal" class="modal-overlay">
+        <div class="modal-content profile-modal-width">
+            <span class="close-btn" onclick="closeModal('addChildModal')">&times;</span>
+            <h2 style="color: #1b5e20; margin-bottom: 20px;">Register New Child</h2>
+            <form id="add-child-form" onsubmit="submitNewChild(event)">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="add-name" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Birthdate</label>
+                        <input type="date" id="add-bday" required onchange="previewAge()">
+                        <small id="add-age-preview" style="color: #666;"></small>
+                    </div>
+                    <div class="input-group">
+                        <label>Parents / Guardian</label>
+                        <input type="text" id="add-parents" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Purok / Sitio</label>
+                        <select id="add-purok" required>
+                            <option value="Purok 1">Purok 1</option>
+                            <option value="Purok 2">Purok 2</option>
+                            <option value="Purok 3">Purok 3</option>
+                            <option value="Purok 4">Purok 4</option>
+                            <option value="Purok 5">Purok 5</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="add-btn" style="width: 100%; margin-top: 15px;">Save Child Record</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="childProfileModal" class="modal-overlay">
+        <div class="modal-content profile-modal-width" style="max-width: 800px;">
+            <span class="close-btn" onclick="closeModal('childProfileModal')">&times;</span>
+            
+            <div class="profile-header" style="margin-bottom: 10px;">
+                <div class="profile-avatar">👶</div>
+                <div class="profile-title">
+                    <h2 id="prof-name">Name</h2>
+                    <p id="prof-subtitle">📍 Purok</p>
+                </div>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="tab-btn active" onclick="switchProfileTab('info')">Personal Info</button>
+                <button class="tab-btn" onclick="switchProfileTab('assessment')">Monthly Assessment</button>
+                <button class="tab-btn" onclick="switchProfileTab('history')">Checkup History</button>
+            </div>
+
+            <div id="tab-info" class="tab-content active">
+                <div id="info-view-mode">
+                    <div class="form-grid">
+                        <div class="info-box"><span class="info-label">Child's Name</span><span id="view-name" class="info-value"></span></div>
+                        <div class="info-box"><span class="info-label">Birthdate</span><span id="view-bday" class="info-value"></span></div>
+                        <div class="info-box"><span class="info-label">Parents</span><span id="view-parents" class="info-value"></span></div>
+                        <div class="info-box"><span class="info-label">Purok</span><span id="view-purok" class="info-value"></span></div>
+                    </div>
+                    <button class="view-btn" style="margin-top: 10px;" onclick="toggleEditMode(true)">✏️ Edit Profile</button>
+                </div>
+
+                <form id="info-edit-mode" onsubmit="saveChildEdits(event)" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px dashed #ccc;">
+                    <h4 style="margin-bottom: 15px; color:#1b5e20;">Editing Profile</h4>
+                    <input type="hidden" id="edit-id">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Child's Name</label>
+                            <input type="text" id="edit-name" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Birthdate</label>
+                            <input type="date" id="edit-bday" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Parents</label>
+                            <input type="text" id="edit-parents" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Purok</label>
+                            <select id="edit-purok" required>
+                                <option value="Purok 1">Purok 1</option>
+                                <option value="Purok 2">Purok 2</option>
+                                <option value="Purok 3">Purok 3</option>
+                                <option value="Purok 4">Purok 4</option>
+                                <option value="Purok 5">Purok 5</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button type="submit" class="add-btn">Save Changes</button>
+                        <button type="button" class="view-btn" onclick="toggleEditMode(false)">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="tab-assessment" class="tab-content">
+                <div id="assessment-status-banner" class="status-banner"></div>
+                <div id="assessment-form-container"></div>
+            </div>
+
+            <div id="tab-history" class="tab-content">
+                <h3 style="margin-bottom: 15px;">Past Monthly Reports</h3>
+                <table class="nutri-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Weight</th>
+                            <th>Height</th>
+                            <th>Status</th>
+                            <th>Vitamins Taken</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="bns-script.js"></script>
+</body>
+</html>
