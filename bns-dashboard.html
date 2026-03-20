@@ -71,9 +71,13 @@
                 <header class="dashboard-header">
                     <div class="header-titles">
                         <h1>Monthly Barangay Report</h1>
-                        <p>Summary of nutritional cases for the current month.</p>
+                        <p>Summary of nutritional cases for the selected month.</p>
                     </div>
-                    <button class="add-btn" style="background:#2196f3;" onclick="window.print()">🖨️ Print Report</button>
+                    <div class="filters-container">
+                        <input type="month" id="reportMonthFilter" onchange="renderReports()">
+                        <button class="add-btn" style="background:#2196f3;" onclick="window.print()">🖨️ Print Report</button>
+                        <button class="add-btn" style="background:#e65100;" onclick="submitReportToAdmin()">📤 Submit to Admin</button>
+                    </div>
                 </header>
 
                 <section class="stats-cards">

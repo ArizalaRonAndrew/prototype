@@ -48,13 +48,19 @@ function generateMockData() {
         const checkedThisMonth = Math.random() > 0.4; 
         
         let historyRecords = [];
-        historyRecords.push({
-            month: "2026-02",
-            weight: (Math.random() * 10 + 5).toFixed(1),
-            height: (Math.random() * 40 + 50).toFixed(1),
-            status: ["Normal", "Underweight", "Obese"][Math.floor(Math.random() * 3)],
-            vitamins: ["Vitamin A", "Iron Drops"]
-        });
+        // Add past 5 mock records so history exists
+        for (let m = 5; m >= 1; m--) {
+            let pDate = new Date();
+            pDate.setMonth(pDate.getMonth() - m);
+            let pMonth = `${pDate.getFullYear()}-${String(pDate.getMonth() + 1).padStart(2, '0')}`;
+            historyRecords.push({
+                month: pMonth,
+                weight: (Math.random() * 10 + 5).toFixed(1),
+                height: (Math.random() * 40 + 50).toFixed(1),
+                status: ["Normal", "Underweight", "Obese"][Math.floor(Math.random() * 3)],
+                vitamins: ["Vitamin A", "Iron Drops"]
+            });
+        }
 
         if(checkedThisMonth) {
             historyRecords.push({
@@ -337,15 +343,18 @@ function submitAssessment() {
     alert("Monthly Assessment Saved!");
 }
 
-// 7. HISTORY TAB
+// 7. HISTORY TAB (Restricted to last 5 months)
 function populateHistoryTab(kid) {
     const tbody = document.getElementById('history-table-body');
     if(kid.records.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history available.</td></tr>`;
         return;
     }
-    const reversedRecords = [...kid.records].reverse();
-    tbody.innerHTML = reversedRecords.map(rec => {
+    
+    // Reverse the records and take only the first 5
+    const recordsToShow = [...kid.records].reverse().slice(0, 5);
+    
+    tbody.innerHTML = recordsToShow.map(rec => {
         let vitDisplay = rec.vitamins && rec.vitamins.length > 0 ? rec.vitamins.join(', ') : 'None';
         let statusColor = rec.status === "Normal" ? "#2e7d32" : (rec.status === "Obese" ? "#fbc02d" : "#d32f2f");
         return `
@@ -362,27 +371,31 @@ function populateHistoryTab(kid) {
 
 // 8. REPORTS GENERATION
 function renderReports() {
+    // Get the selected month or default to the current month string
+    const selectedMonth = document.getElementById('reportMonthFilter').value || currentMonthString;
+    
     let total = childrenData.length;
     let normal = 0, mal = 0, obese = 0;
     let issuesListHTML = "";
 
     childrenData.forEach(kid => {
-        const latest = kid.records[kid.records.length - 1];
+        // Find the record matching the selected month
+        const monthRecord = kid.records.find(r => r.month === selectedMonth);
         const age = calculateAgeInMonths(kid.birthdate);
         
-        if (latest) {
-            if (latest.status === "Normal") normal++;
-            if (latest.status === "Underweight" || latest.status === "Stunted") mal++;
-            if (latest.status === "Obese") obese++;
+        if (monthRecord) {
+            if (monthRecord.status === "Normal") normal++;
+            if (monthRecord.status === "Underweight" || monthRecord.status === "Stunted") mal++;
+            if (monthRecord.status === "Obese") obese++;
 
-            if (latest.status !== "Normal") {
+            if (monthRecord.status !== "Normal") {
                 issuesListHTML += `
                     <tr>
                         <td><strong>${kid.name}</strong></td>
                         <td>${age} mos</td>
                         <td>${kid.purok}</td>
-                        <td style="color:${latest.status === 'Obese' ? '#fbc02d' : '#d32f2f'}; font-weight:bold;">${latest.status}</td>
-                        <td>${latest.month}</td>
+                        <td style="color:${monthRecord.status === 'Obese' ? '#fbc02d' : '#d32f2f'}; font-weight:bold;">${monthRecord.status}</td>
+                        <td>${monthRecord.month}</td>
                     </tr>
                 `;
             }
@@ -393,7 +406,13 @@ function renderReports() {
     document.getElementById('rep-normal').innerText = normal;
     document.getElementById('rep-mal').innerText = mal;
     document.getElementById('rep-obese').innerText = obese;
-    document.getElementById('reports-table-body').innerHTML = issuesListHTML || `<tr><td colspan="5" style="text-align:center;">No health issues recorded.</td></tr>`;
+    document.getElementById('reports-table-body').innerHTML = issuesListHTML || `<tr><td colspan="5" style="text-align:center;">No health issues recorded for this month.</td></tr>`;
+}
+
+// 9. SUBMIT REPORT
+function submitReportToAdmin() {
+    const selectedMonth = document.getElementById('reportMonthFilter').value || currentMonthString;
+    alert(`Report for ${selectedMonth} has been submitted to the Admin successfully!`);
 }
 
 // UTILITIES & BUG FIXES
@@ -405,14 +424,12 @@ function switchBNSView(view) {
     menuItems[view === 'masterlist' ? 0 : 1].classList.add('active');
 }
 
-// **BUG FIX:** Removed the "event.currentTarget" error that was breaking subsequent clicks
 function switchProfileTab(tab) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
     
     document.getElementById(`tab-${tab}`).classList.add('active');
     
-    // Safely apply the active class based on the tab name
     const tabButtons = document.querySelectorAll('.tab-btn');
     if (tab === 'info') tabButtons[0].classList.add('active');
     else if (tab === 'assessment') tabButtons[1].classList.add('active');
@@ -422,6 +439,10 @@ function switchProfileTab(tab) {
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Set the month picker to the current month initially
+    if(document.getElementById('reportMonthFilter')) {
+        document.getElementById('reportMonthFilter').value = currentMonthString;
+    }
     generateMockData();
     renderMasterlist();
 });
