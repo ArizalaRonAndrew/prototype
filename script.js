@@ -156,13 +156,18 @@ function switchView(viewName) {
 }
 
 function initFilters() {
-    const selects = [document.getElementById('trendBrgy'), document.getElementById('filterBrgy')];
-    let options = '<option value="all">All Barangays</option>';
-    balayanBrgys.forEach(b => options += `<option value="${b}">Brgy. ${b}</option>`);
-    
-    selects.forEach(select => {
-        if(select) select.innerHTML = options;
-    });
+    const selectsTrendsRecords = [document.getElementById('trendBrgy'), document.getElementById('filterBrgy')];
+    let optionsTrendsRecords = '<option value="all">All Barangays</option>';
+    balayanBrgys.forEach(b => optionsTrendsRecords += `<option value="${b}">Brgy. ${b}</option>`);
+    selectsTrendsRecords.forEach(select => { if(select) select.innerHTML = optionsTrendsRecords; });
+
+    // Populate new Barangay filter for Reports Header
+    const reportBrgyFilter = document.getElementById('reportBrgyFilter');
+    if (reportBrgyFilter) {
+        let optionsReports = '<option value="all">All Barangays</option>';
+        balayanBrgys.forEach(b => optionsReports += `<option value="${b}">Brgy. ${b}</option>`);
+        reportBrgyFilter.innerHTML = optionsReports;
+    }
 }
 
 // MAP LOGIC
@@ -291,13 +296,12 @@ function updateTrends() {
             label: label,
             data: generateChartData(count),
             borderColor: color,
-            backgroundColor: color + '1A', // 10% Opacity Fill
+            backgroundColor: color + '1A', 
             fill: true,
             tension: 0.4
         });
     };
 
-    // Generate Dynamic Lines based on the exact selected Metric
     if (selectedMetric === "WFLH") {
         addDataset('Normal (N)', '#2e7d32', filteredKids.filter(k=>k.wflh==='N').length);
         addDataset('Overweight (OW)', '#fbc02d', filteredKids.filter(k=>k.wflh==='OW').length);
@@ -321,12 +325,7 @@ function updateTrends() {
     healthChart = new Chart(ctxLine, {
         type: 'line',
         data: { labels: months, datasets: datasets },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            scales: { y: { beginAtZero: true } }, 
-            plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } } } // Explicitly show chart legend
-        }
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } } } }
     });
 
     const ctxBar = document.getElementById('brgyComparisonChart').getContext('2d');
@@ -343,7 +342,6 @@ function updateTrends() {
             else if(ageRange === '24-59') list = list.filter(k => k.age >= 24);
         }
 
-        // Count only the issues based on the selected metric type
         let issuesCount = 0;
         list.forEach(k => {
             let val = selectedMetric === "WFLH" ? k.wflh : (selectedMetric === "HFA" ? k.hfa : k.wfa);
@@ -378,7 +376,6 @@ function updateRecords() {
     const totalReg = filteredList.length;
     const missedTotal = filteredList.filter(k => !k.vitaminTaken).length;
 
-    // UPDATE KPIs
     if(document.getElementById('statTotalRecords')) document.getElementById('statTotalRecords').innerText = totalReg;
     if(document.getElementById('statMissedRecords')) document.getElementById('statMissedRecords').innerText = missedTotal;
 
@@ -424,35 +421,94 @@ function updateRecords() {
     }).join('');
 }
 
-// REPORTS VIEW LOGIC
+// UPDATED HEALTH REPORTS VIEW - Consolidated OPT Summary Matrix
 function updateReportsView() {
-    if(!document.getElementById('reports-table-body')) return;
+    if(!document.getElementById('reports-list-body')) return;
 
-    const reportData = balayanBrgys.map(brgy => {
-        const kids = masterData[brgy];
+    const brgyFilter = document.getElementById('reportBrgyFilter').value;
+    const tbody = document.getElementById('reports-list-body');
+    let reportListHTML = "";
+
+    // Function to calculate and output a single aggregated row for the matrix
+    function generateSummaryRow(locationName, kids) {
         const total = kids.length;
-        
-        const normal = kids.filter(k => k.overallStatus === 'Normal').length;
-        const mal = kids.filter(k => k.overallStatus === 'Malnourished').length;
-        const obese = kids.filter(k => k.overallStatus === 'Obese').length;
-        const totalIssues = mal + obese; 
+        if (total === 0) return '';
 
-        return { brgy, total, normal, mal, obese, totalIssues };
-    });
+        let wfa_n=0, wfa_uw=0, wfa_suw=0, wfa_ow=0;
+        let hfa_n=0, hfa_st=0, hfa_sst=0, hfa_t=0;
+        let wflh_n=0, wflh_mw=0, wflh_sw=0, wflh_ow=0, wflh_ob=0;
 
-    reportData.sort((a, b) => b.totalIssues - a.totalIssues);
+        kids.forEach(k => {
+            // WFA
+            if(k.wfa === 'N') wfa_n++;
+            else if(k.wfa === 'UW') wfa_uw++;
+            else if(k.wfa === 'SUW') wfa_suw++;
+            else if(k.wfa === 'OW') wfa_ow++;
 
-    const tbody = document.getElementById('reports-table-body');
-    tbody.innerHTML = reportData.map(data => `
-        <tr>
-            <td><strong>Brgy. ${data.brgy}</strong></td>
-            <td>${data.total}</td>
-            <td><span style="color: #2e7d32; font-weight: 600;">${data.normal}</span></td>
-            <td>${data.mal}</td>
-            <td>${data.obese}</td>
-            <td><span style="color: #d32f2f; font-weight: bold; font-size: 16px;">${data.totalIssues}</span></td>
-        </tr>
-    `).join('');
+            // HFA
+            if(k.hfa === 'N') hfa_n++;
+            else if(k.hfa === 'ST') hfa_st++;
+            else if(k.hfa === 'SST') hfa_sst++;
+            else if(k.hfa === 'T') hfa_t++;
+
+            // WFL/H
+            if(k.wflh === 'N') wflh_n++;
+            else if(k.wflh === 'MW') wflh_mw++;
+            else if(k.wflh === 'SW') wflh_sw++;
+            else if(k.wflh === 'OW') wflh_ow++;
+            else if(k.wflh === 'OB') wflh_ob++;
+        });
+
+        return `
+            <tr>
+                <td style="text-align:left; padding-left:15px; font-weight:600; color:#37474f;">${locationName}</td>
+                <td style="font-weight:bold; font-size:14px;">${total}</td>
+                
+                <td>${wfa_n}</td>
+                <td style="color:#e65100; font-weight:600;">${wfa_uw}</td>
+                <td style="color:#c62828; font-weight:bold;">${wfa_suw}</td>
+                <td style="color:#f9a825; font-weight:600;">${wfa_ow}</td>
+
+                <td>${hfa_n}</td>
+                <td style="color:#e65100; font-weight:600;">${hfa_st}</td>
+                <td style="color:#c62828; font-weight:bold;">${hfa_sst}</td>
+                <td style="color:#1976d2; font-weight:600;">${hfa_t}</td>
+
+                <td>${wflh_n}</td>
+                <td style="color:#e65100; font-weight:600;">${wflh_mw}</td>
+                <td style="color:#c62828; font-weight:bold;">${wflh_sw}</td>
+                <td style="color:#f9a825; font-weight:600;">${wflh_ow}</td>
+                <td style="color:#b71c1c; font-weight:bold;">${wflh_ob}</td>
+            </tr>
+        `;
+    }
+
+    let totals = { kids:[] };
+
+    if (brgyFilter === 'all') {
+        // Show summary broken down by Barangay
+        balayanBrgys.forEach(brgy => {
+            const kids = masterData[brgy] || [];
+            reportListHTML += generateSummaryRow(`Brgy. ${brgy}`, kids);
+            totals.kids.push(...kids);
+        });
+    } else {
+        // Show summary broken down by Purok for the specific Barangay
+        const kidsInBrgy = masterData[brgyFilter] || [];
+        const puroks = ["PUROK 1", "PUROK 2", "PUROK 3", "PUROK 4", "PUROK 5"];
+        puroks.forEach(purok => {
+            const kidsInPurok = kidsInBrgy.filter(k => k.sitio === purok);
+            reportListHTML += generateSummaryRow(`${brgyFilter} - ${purok}`, kidsInPurok);
+        });
+        totals.kids = kidsInBrgy;
+    }
+
+    // Add Grand Total Row
+    if (totals.kids.length > 0) {
+        reportListHTML += generateSummaryRow("GRAND TOTAL", totals.kids).replace('<tr>', '<tr style="background-color:#f0f4f1; border-top:2px solid #94a3b8;">');
+    }
+
+    tbody.innerHTML = reportListHTML || `<tr><td colspan="15" style="text-align:center;">No records available.</td></tr>`;
 }
 
 // PROFILE MODAL
