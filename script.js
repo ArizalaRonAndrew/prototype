@@ -16,31 +16,34 @@ function getRandomName() {
     return `${lastNames[Math.floor(Math.random() * lastNames.length)]}, ${firstNames[Math.floor(Math.random() * firstNames.length)]}`.toUpperCase();
 }
 
-// NUTRITION CALCULATION - Aligned with BNS Side tags
+// NUTRITION CALCULATION - Strictly aligned with specific BNS acronyms
 function computeWFA(weight, ageMonths) {
+    if (!weight) return "Pending";
     let expectedW = ageMonths * 0.2 + 3.5; 
-    if (weight < expectedW - 3) return "SUW";
-    if (weight < expectedW - 1.5) return "UW";
-    if (weight > expectedW + 3) return "OW";
-    return "N";
+    if (weight < expectedW - 3) return "SUW"; // Severely Underweight
+    if (weight < expectedW - 1.5) return "UW"; // Underweight
+    if (weight > expectedW + 3) return "OW"; // Overweight
+    return "N"; // Normal
 }
 
 function computeHFA(height, ageMonths) {
+    if (!height) return "Pending";
     let expectedH = ageMonths * 1.5 + 48;
-    if (height < expectedH - 6) return "SSt";
-    if (height < expectedH - 3) return "St";
-    if (height > expectedH + 5) return "T";
-    return "N";
+    if (height < expectedH - 6) return "SST"; // Severely Stunted
+    if (height < expectedH - 3) return "ST"; // Stunted
+    if (height > expectedH + 5) return "T"; // Tall
+    return "N"; // Normal
 }
 
 function computeWFLH(weight, height) {
+    if (!weight || !height) return "Pending";
     let hM = height / 100;
     let bmi = weight / (hM * hM);
-    if (bmi < 12.0) return "SW";
-    if (bmi < 13.5) return "W";
-    if (bmi > 18.5) return "Ob";
-    if (bmi > 17.0) return "OW";
-    return "N";
+    if (bmi < 12.0) return "SW"; // Severely Wasted
+    if (bmi < 13.5) return "MW"; // Moderately Wasted
+    if (bmi > 18.5) return "OB"; // Obese
+    if (bmi > 17.0) return "OW"; // Overweight
+    return "N"; // Normal
 }
 
 function getVitaminsByAge(age) {
@@ -51,13 +54,13 @@ function getVitaminsByAge(age) {
 
 function getStatusBadge(status) {
     if (status === "N") return `<span class="badge-status badge-normal">N</span>`;
-    if (["OW", "Ob", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
-    if (["UW", "SUW", "St", "SSt", "W", "SW"].includes(status)) return `<span class="badge-status badge-danger">${status}</span>`;
+    if (["OW", "OB", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
+    if (["UW", "SUW", "ST", "SST", "MW", "SW"].includes(status)) return `<span class="badge-status badge-danger">${status}</span>`;
     return `<span class="badge-status badge-pending">Pending</span>`;
 }
 
 function getFullStatusName(code) {
-    const map = { "N":"Normal", "UW":"Underweight", "SUW":"Severely Underweight", "OW":"Overweight", "Ob":"Obese", "St":"Stunted", "SSt":"Severely Stunted", "T":"Tall", "W":"Wasted", "SW":"Severely Wasted" };
+    const map = { "N":"Normal", "UW":"Underweight", "SUW":"Severely Underweight", "OW":"Overweight", "OB":"Obese", "ST":"Stunted", "SST":"Severely Stunted", "T":"Tall", "MW":"Moderately Wasted", "SW":"Severely Wasted" };
     return map[code] || "Pending";
 }
 
@@ -93,9 +96,10 @@ balayanBrgys.forEach((brgy, index) => {
         let hfa = computeHFA(height, age);
         let wflh = computeWFLH(weight, height);
 
+        // Overall classification logic for specific Masterlist/Map views
         let overall = "Normal";
-        if (wfa === "UW" || wfa === "SUW" || hfa === "St" || hfa === "SSt" || wflh === "W" || wflh === "SW") overall = "Malnourished";
-        if (wfa === "OW" || wflh === "OW" || wflh === "Ob") overall = "Obese";
+        if (["UW", "SUW"].includes(wfa) || ["ST", "SST"].includes(hfa) || ["MW", "SW"].includes(wflh)) overall = "Malnourished";
+        if (["OB", "OW"].includes(wflh) || wfa === "OW") overall = "Obese";
 
         masterData[brgy].push({
             id: `B${index}-K${k}`,
@@ -232,7 +236,7 @@ function openInfoPanel(brgy, normal, mal, obese, badCases, colorCode, totalKids)
 
 function closeInfoPanel() { if(document.getElementById('brgy-info-panel')) document.getElementById('brgy-info-panel').classList.remove('open'); }
 
-// DASHBOARD CHARTS
+// DASHBOARD CHARTS & TRENDS
 function generateChartData(targetValue) {
     if (targetValue === 0) return months.map(() => 0);
     const data = [];
@@ -254,37 +258,75 @@ function updateTrends() {
 
     const brgy = document.getElementById('trendBrgy').value;
     const ageRange = document.getElementById('trendAge').value;
-    const selectedStatus = document.getElementById('trendStatus').value;
+    const selectedMetric = document.getElementById('trendStatus').value; // Values: WFLH, HFA, WFA
 
     let baseKids = brgy === 'all' ? Object.values(masterData).flat() : masterData[brgy];
-    let filteredKids = filterDataList(baseKids, ageRange, selectedStatus, 'all');
+    let filteredKids = baseKids;
+    
+    if(ageRange !== 'all') {
+        if(ageRange === '0-11') filteredKids = filteredKids.filter(k => k.age <= 11);
+        else if(ageRange === '12-23') filteredKids = filteredKids.filter(k => k.age >= 12 && k.age <= 23);
+        else if(ageRange === '24-59') filteredKids = filteredKids.filter(k => k.age >= 24);
+    }
 
-    const countNormal = filteredKids.filter(k => k.overallStatus === 'Normal').length;
-    const countMal = filteredKids.filter(k => k.overallStatus === 'Malnourished').length;
-    const countObese = filteredKids.filter(k => k.overallStatus === 'Obese').length;
+    // Custom Stats Calculation for Metric View
+    let countNormal = 0, countUnder = 0, countOver = 0;
+    filteredKids.forEach(k => {
+        let val = selectedMetric === "WFLH" ? k.wflh : (selectedMetric === "HFA" ? k.hfa : k.wfa);
+        if (val === "N") countNormal++;
+        else if (["UW", "SUW", "ST", "SST", "MW", "SW"].includes(val)) countUnder++;
+        else if (["OW", "OB", "T"].includes(val)) countOver++;
+    });
 
     document.getElementById('statNormal').innerText = countNormal;
-    document.getElementById('statMal').innerText = countMal;
-    document.getElementById('statObese').innerText = countObese;
+    document.getElementById('statMal').innerText = countUnder;
+    document.getElementById('statObese').innerText = countOver;
 
     const ctxLine = document.getElementById('healthTrendChart').getContext('2d');
     if (healthChart) healthChart.destroy();
+    
     const datasets = [];
+    const addDataset = (label, color, count) => {
+        datasets.push({
+            label: label,
+            data: generateChartData(count),
+            borderColor: color,
+            backgroundColor: color + '1A', // 10% Opacity Fill
+            fill: true,
+            tension: 0.4
+        });
+    };
 
-    if(selectedStatus === 'all' || selectedStatus === 'Normal') {
-        datasets.push({ label: 'Normal', data: generateChartData(countNormal), borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.1)', fill: true, tension: 0.4 });
-    }
-    if(selectedStatus === 'all' || selectedStatus === 'Malnourished') {
-        datasets.push({ label: 'Malnourished', data: generateChartData(countMal), borderColor: '#d32f2f', backgroundColor: 'rgba(211,47,47,0.1)', fill: true, tension: 0.4 });
-    }
-    if(selectedStatus === 'all' || selectedStatus === 'Obese') {
-        datasets.push({ label: 'Obese', data: generateChartData(countObese), borderColor: '#fbc02d', backgroundColor: 'rgba(251,192,45,0.1)', fill: true, tension: 0.4 });
+    // Generate Dynamic Lines based on the exact selected Metric
+    if (selectedMetric === "WFLH") {
+        addDataset('Normal (N)', '#2e7d32', filteredKids.filter(k=>k.wflh==='N').length);
+        addDataset('Overweight (OW)', '#fbc02d', filteredKids.filter(k=>k.wflh==='OW').length);
+        addDataset('Obese (OB)', '#e65100', filteredKids.filter(k=>k.wflh==='OB').length);
+        addDataset('Mod. Wasted (MW)', '#f44336', filteredKids.filter(k=>k.wflh==='MW').length);
+        addDataset('Sev. Wasted (SW)', '#b71c1c', filteredKids.filter(k=>k.wflh==='SW').length);
+    } 
+    else if (selectedMetric === "HFA") {
+        addDataset('Normal (N)', '#2e7d32', filteredKids.filter(k=>k.hfa==='N').length);
+        addDataset('Tall (T)', '#1976d2', filteredKids.filter(k=>k.hfa==='T').length);
+        addDataset('Stunted (ST)', '#f44336', filteredKids.filter(k=>k.hfa==='ST').length);
+        addDataset('Sev. Stunted (SST)', '#b71c1c', filteredKids.filter(k=>k.hfa==='SST').length);
+    } 
+    else if (selectedMetric === "WFA") {
+        addDataset('Normal (N)', '#2e7d32', filteredKids.filter(k=>k.wfa==='N').length);
+        addDataset('Overweight (OW)', '#fbc02d', filteredKids.filter(k=>k.wfa==='OW').length);
+        addDataset('Underweight (UW)', '#f44336', filteredKids.filter(k=>k.wfa==='UW').length);
+        addDataset('Sev. Underweight (SUW)', '#b71c1c', filteredKids.filter(k=>k.wfa==='SUW').length);
     }
 
     healthChart = new Chart(ctxLine, {
         type: 'line',
         data: { labels: months, datasets: datasets },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            scales: { y: { beginAtZero: true } }, 
+            plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } } } // Explicitly show chart legend
+        }
     });
 
     const ctxBar = document.getElementById('brgyComparisonChart').getContext('2d');
@@ -295,37 +337,29 @@ function updateTrends() {
 
     balayanBrgys.forEach(b => {
         let list = masterData[b];
-        
         if(ageRange !== 'all') {
             if(ageRange === '0-11') list = list.filter(k => k.age <= 11);
             else if(ageRange === '12-23') list = list.filter(k => k.age >= 12 && k.age <= 23);
             else if(ageRange === '24-59') list = list.filter(k => k.age >= 24);
         }
 
-        let barCount = 0;
-        let baseColor = '';
+        // Count only the issues based on the selected metric type
+        let issuesCount = 0;
+        list.forEach(k => {
+            let val = selectedMetric === "WFLH" ? k.wflh : (selectedMetric === "HFA" ? k.hfa : k.wfa);
+            if (val !== "N") issuesCount++;
+        });
 
-        if (selectedStatus === 'all') {
-            barCount = list.filter(k => k.overallStatus !== 'Normal').length; 
-            baseColor = '#f57c00'; 
-        } else {
-            barCount = list.filter(k => k.overallStatus === selectedStatus).length;
-            if (selectedStatus === 'Normal') baseColor = '#2e7d32';
-            else if (selectedStatus === 'Obese') baseColor = '#fbc02d';
-            else baseColor = '#d32f2f';
-        }
-
+        let baseColor = '#f57c00'; 
         if (brgy !== 'all' && brgy !== b) baseColor += '40'; 
 
-        barData.push(barCount);
+        barData.push(issuesCount);
         barColors.push(baseColor);
     });
 
-    let barLabel = selectedStatus === 'all' ? 'Total Health Cases' : `Total ${selectedStatus}`;
-
     comparisonChart = new Chart(ctxBar, {
         type: 'bar',
-        data: { labels: balayanBrgys, datasets: [{ label: barLabel, data: barData, backgroundColor: barColors, borderRadius: 4 }] },
+        data: { labels: balayanBrgys, datasets: [{ label: `Total Issues (${selectedMetric})`, data: barData, backgroundColor: barColors, borderRadius: 4 }] },
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } }, plugins: { legend: { display: false } } }
     });
 }

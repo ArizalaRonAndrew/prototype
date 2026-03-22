@@ -36,7 +36,7 @@
                 <header class="dashboard-header">
                     <div class="header-titles">
                         <h1>Health Trends Monitoring</h1>
-                        <p>Visual representation and comparison of nutritional status.</p>
+                        <p>Visual representation and comparison of specific nutritional indicators.</p>
                     </div>
                     <div class="filters-container">
                         <select id="trendBrgy" onchange="updateTrends()"></select>
@@ -47,10 +47,9 @@
                             <option value="24-59">24-59 Months</option>
                         </select>
                         <select id="trendStatus" onchange="updateTrends()">
-                            <option value="all">Overall Status</option>
-                            <option value="Normal">Normal</option>
-                            <option value="Malnourished">Malnourished</option>
-                            <option value="Obese">Obese</option>
+                            <option value="WFLH">Weight for L/H (WFL/H)</option>
+                            <option value="HFA">Height for Age (HFA)</option>
+                            <option value="WFA">Weight for Age (WFA)</option>
                         </select>
                     </div>
                 </header>
@@ -59,21 +58,21 @@
                     <div class="card normal">
                         <div class="card-icon"><i class="fas fa-heart" style="color:#2e7d32"></i></div>
                         <div>
-                            <h4>Filtered Normal</h4>
+                            <h4>Normal (N)</h4>
                             <p id="statNormal" class="stat-num">0</p>
                         </div>
                     </div>
                     <div class="card mal">
                         <div class="card-icon"><i class="fas fa-exclamation-triangle" style="color:#d32f2f"></i></div>
                         <div>
-                            <h4>Filtered Malnourished</h4>
+                            <h4>Deficit (UW/MW/ST)</h4>
                             <p id="statMal" class="stat-num">0</p>
                         </div>
                     </div>
                     <div class="card obese">
                         <div class="card-icon"><i class="fas fa-hamburger" style="color:#f9a825"></i></div>
                         <div>
-                            <h4>Filtered Obese</h4>
+                            <h4>Excess (OW/OB/T)</h4>
                             <p id="statObese" class="stat-num">0</p>
                         </div>
                     </div>
@@ -88,7 +87,7 @@
                     </section>
 
                     <section class="chart-section">
-                        <h3 id="barChartTitle">Barangay Comparison (Cases Based on Filter)</h3>
+                        <h3 id="barChartTitle">Barangay Comparison (Total Health Issues)</h3>
                         <div class="canvas-holder">
                             <canvas id="brgyComparisonChart"></canvas>
                         </div>
