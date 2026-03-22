@@ -30,8 +30,8 @@ function computeWFA(weight, ageMonths) {
 function computeHFA(height, ageMonths) {
     if (!height) return "Pending";
     let expectedH = ageMonths * 1.5 + 48;
-    if (height < expectedH - 6) return "SSt"; // Severely Stunted
-    if (height < expectedH - 3) return "St"; // Stunted
+    if (height < expectedH - 6) return "SST"; // Severely Stunted
+    if (height < expectedH - 3) return "ST"; // Stunted
     if (height > expectedH + 5) return "T"; // Tall
     return "N"; // Normal
 }
@@ -41,8 +41,8 @@ function computeWFLH(weight, height) {
     let hM = height / 100;
     let bmi = weight / (hM * hM);
     if (bmi < 12.0) return "SW"; // Severely Wasted
-    if (bmi < 13.5) return "W"; // Wasted
-    if (bmi > 18.5) return "Ob"; // Obese
+    if (bmi < 13.5) return "MW"; // Moderately Wasted
+    if (bmi > 18.5) return "OB"; // Obese
     if (bmi > 17.0) return "OW"; // Overweight
     return "N"; // Normal
 }
@@ -60,7 +60,7 @@ function generateMockData() {
     const parentNames = ["Bautista, Angelique", "Castromero, Richard", "Macalalad, Leahrose", "Perez, Jennelyn", "Dela Cuesta, Rowena", "Castromero, Carla", "Dela Cuesta, Rowena", "Castromero, Anselma", "Natividad, Rhegine", "De Padua, Joanna", "Baon, Mina", "Macalalad, Laarni", "Dacaymat, Josalyn", "Santos, Maria", "Reyes, Elena"];
     
     // Predetermined Specific cases. Lots of Normal, 1 of each special condition
-    const conditions = ["N", "N", "OW", "N", "Ob", "N", "N", "N", "N", "N", "St", "N", "N", "UW", "W"];
+    const conditions = ["N", "N", "OW", "N", "OB", "N", "N", "N", "N", "N", "ST", "N", "N", "UW", "MW"];
 
     for(let i=0; i<15; i++) {
         const bDate = new Date();
@@ -79,9 +79,9 @@ function generateMockData() {
         // Force weights/heights to fit the predetermined target condition
         if (conditions[i] === "UW") { w = expectedW - 2.0; }
         else if (conditions[i] === "OW") { w = expectedW + 3.5; }
-        else if (conditions[i] === "Ob") { w = expectedW + 5.5; }
-        else if (conditions[i] === "St") { h = expectedH - 4.5; }
-        else if (conditions[i] === "W") { w = expectedW - 2.5; h = expectedH + 2.0; }
+        else if (conditions[i] === "OB") { w = expectedW + 5.5; }
+        else if (conditions[i] === "ST") { h = expectedH - 4.5; }
+        else if (conditions[i] === "MW") { w = expectedW - 2.5; h = expectedH + 2.0; }
 
         let historyRecords = [];
         
@@ -402,8 +402,8 @@ function populateHistoryTab(kid) {
 // REPORTS GENERATION (Clean Report logic)
 function getStatusBadge(status) {
     if (status === "N") return `<span class="badge-status badge-normal">N</span>`;
-    if (["OW", "Ob", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
-    if (["UW", "SUW", "St", "SSt", "W", "SW"].includes(status)) return `<span class="badge-status badge-danger">${status}</span>`;
+    if (["OW", "OB", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
+    if (["UW", "SUW", "ST", "SST", "MW", "SW"].includes(status)) return `<span class="badge-status badge-danger">${status}</span>`;
     return `<span class="badge-status badge-pending">Pending</span>`;
 }
 
@@ -429,8 +429,8 @@ function renderReports() {
             if (wfa === "N" && hfa === "N" && wflh === "N") {
                 normal++;
             } else {
-                if (wfa === "UW" || wfa === "SUW" || hfa === "St" || hfa === "SSt" || wflh === "W" || wflh === "SW") mal++;
-                if (wflh === "Ob" || wflh === "OW" || wfa === "OW") obese++;
+                if (["UW", "SUW"].includes(wfa) || ["ST", "SST"].includes(hfa) || ["MW", "SW"].includes(wflh)) mal++;
+                if (["OB", "OW"].includes(wflh) || wfa === "OW") obese++;
             }
         }
 
