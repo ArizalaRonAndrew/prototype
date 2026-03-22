@@ -77,13 +77,29 @@ body.dashboard-body {
     border-left-color: #ffcdd2 !important;
 }
 
-/* Main Content Styles */
+/* Main Content Styles & SCROLLBAR HIDING */
 .main-content {
     flex-grow: 1;
     width: calc(100% - 260px); 
     padding: 30px 40px;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+/* Apply hidden scrollbars to all scrollable areas */
+.main-content, 
+.modal-content,
+.report-table-wrapper,
+.list-section {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.main-content::-webkit-scrollbar, 
+.modal-content::-webkit-scrollbar,
+.report-table-wrapper::-webkit-scrollbar,
+.list-section::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 
 .dashboard-header {
@@ -167,6 +183,7 @@ body.dashboard-body {
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow-x: auto;
 }
 
 .nutri-table {
@@ -242,15 +259,6 @@ body.dashboard-body {
     position: relative;
     max-height: 90vh;
     overflow-y: auto;
-    
-    /* SCROLLBAR REMOVAL PROPERTIES */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
-/* HIDE SCROLLBAR Chrome, Safari and Opera */
-.modal-content::-webkit-scrollbar {
-    display: none;
 }
 
 .profile-modal-width { width: 500px; }

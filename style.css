@@ -38,7 +38,7 @@ body { background-color: #f0f4f1; color: #333; overflow-x: hidden; }
 .logout-item { margin-top: auto; color: #ffab91; border: 1px solid rgba(255, 171, 145, 0.3); justify-content: center; }
 .logout-item:hover { background: rgba(255, 171, 145, 0.1) !important; }
 
-/* MAIN CONTENT */
+/* MAIN CONTENT & SCROLLBAR HIDING */
 .main-content { 
     flex-grow: 1; 
     width: calc(100% - 260px); 
@@ -48,6 +48,24 @@ body { background-color: #f0f4f1; color: #333; overflow-x: hidden; }
     height: 100vh; 
     scroll-behavior: smooth; 
     position: relative;
+}
+
+/* Apply hidden scrollbars to all scrollable areas */
+.main-content, 
+.modal-content,
+.report-table-wrapper,
+.list-section,
+.chart-section {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.main-content::-webkit-scrollbar, 
+.modal-content::-webkit-scrollbar,
+.report-table-wrapper::-webkit-scrollbar,
+.list-section::-webkit-scrollbar,
+.chart-section::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 
 .dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
