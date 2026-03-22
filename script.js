@@ -7,7 +7,6 @@ const balayanBrgys = [
 ]; 
 const kidsPerBrgy = 40; 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const statuses = ["Normal", "Underweight", "Stunted", "Obese"];
 
 // FILIPINO NAME GENERATOR
 const firstNames = ["Juan", "Maria", "Jose", "Luz", "Pedro", "Ana", "Miguel", "Rosa", "Carlos", "Teresa", "Luis", "Carmen", "Mateo", "Sofia", "Diego", "Elena"];
@@ -15,6 +14,39 @@ const lastNames = ["Santos", "Reyes", "Cruz", "Bautista", "Ocampo", "Garcia", "M
 
 function getRandomName() {
     return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+}
+
+// NUTRITION CALCULATION
+function computeWFA(weight, ageMonths) {
+    let expectedW = ageMonths * 0.2 + 3.5; 
+    if (weight < expectedW - 3) return "Severely Underweight (suw)";
+    if (weight < expectedW - 1.5) return "Underweight (uw)";
+    if (weight > expectedW + 3) return "Overweight (ow)";
+    return "Normal (n)";
+}
+
+function computeHFA(height, ageMonths) {
+    let expectedH = ageMonths * 1.5 + 48;
+    if (height < expectedH - 6) return "Severely Stunted (sst)";
+    if (height < expectedH - 3) return "Stunted (st)";
+    if (height > expectedH + 5) return "Tall (t)";
+    return "Normal (n)";
+}
+
+function computeWFLH(weight, height) {
+    let hM = height / 100;
+    let bmi = weight / (hM * hM);
+    if (bmi < 12.0) return "Severely Wasted (sw)";
+    if (bmi < 13.5) return "Wasted (w)";
+    if (bmi > 18.5) return "Obese (ob)";
+    if (bmi > 17.0) return "Overweight (ow)";
+    return "Normal (n)";
+}
+
+function getVitaminsByAge(age) {
+    if (age <= 6) return ["Vit A (100k IU)", "Newborn Screening"];
+    if (age <= 23) return ["Vit A (200k IU)", "Iron Drops", "Deworming"];
+    return ["Vit A (High Dose)", "Deworming", "Zinc Supplement"];
 }
 
 // Generate Master Data
@@ -28,23 +60,34 @@ balayanBrgys.forEach((brgy, index) => {
         balayanCenter[1] + (Math.random() * 0.08 - 0.04)
     ];
 
-    let statusPool = [];
-    if (index % 3 === 0) statusPool = ["Normal", "Normal", "Normal", "Underweight", "Obese"]; 
-    else if (index % 3 === 1) statusPool = ["Normal", "Normal", "Underweight", "Stunted", "Obese"]; 
-    else statusPool = ["Normal", "Underweight", "Underweight", "Stunted", "Obese", "Obese"]; 
-
     for (let k = 1; k <= kidsPerBrgy; k++) {
         const history = [];
         for(let m=0; m<6; m++) { history.push(Math.random() > 0.2); } 
 
-        const assignedStatus = statusPool[Math.floor(Math.random() * statusPool.length)];
+        let age = Math.floor(Math.random() * 60) + 1; 
+        let weight = (Math.random() * 10 + 5).toFixed(1);
+        let height = (Math.random() * 40 + 50).toFixed(1);
+        
+        let wfa = computeWFA(weight, age);
+        let hfa = computeHFA(height, age);
+        let wflh = computeWFLH(weight, height);
+
+        let overall = "Normal";
+        if (wfa.includes("Underweight") || hfa.includes("Stunted") || wflh.includes("Wasted")) overall = "Malnourished";
+        if (wfa.includes("Overweight") || wflh.includes("Obese")) overall = "Obese";
 
         masterData[brgy].push({
             id: `B${index}-K${k}`,
             name: getRandomName(),
+            gender: Math.random() > 0.5 ? "Male" : "Female",
             parents: `${getRandomName()} & ${getRandomName()}`,
-            age: Math.floor(Math.random() * 60) + 1, 
-            status: assignedStatus,
+            age: age, 
+            weight: weight,
+            height: height,
+            wfa: wfa,
+            hfa: hfa,
+            wflh: wflh,
+            overallStatus: overall,
             sitio: "Purok " + Math.ceil(Math.random() * 5),
             brgy: brgy,
             vitaminTaken: Math.random() > 0.3,
@@ -52,12 +95,6 @@ balayanBrgys.forEach((brgy, index) => {
         });
     }
 });
-
-function getVitaminsByAge(age) {
-    if (age <= 6) return ["Vit A (100k IU)", "Newborn Screening"];
-    if (age <= 23) return ["Vit A (200k IU)", "Iron Drops", "Deworming"];
-    return ["Vit A (High Dose)", "Deworming", "Zinc Supplement"];
-}
 
 // GLOBAL FILTER ENGINE
 function filterDataList(list, ageRange, status, vitStatus) {
@@ -67,7 +104,7 @@ function filterDataList(list, ageRange, status, vitStatus) {
         else if(ageRange === '12-23') filtered = filtered.filter(k => k.age >= 12 && k.age <= 23);
         else if(ageRange === '24-59') filtered = filtered.filter(k => k.age >= 24);
     }
-    if (status && status !== 'all') filtered = filtered.filter(k => k.status === status);
+    if (status && status !== 'all') filtered = filtered.filter(k => k.overallStatus === status);
     if (vitStatus && vitStatus !== 'all') filtered = filtered.filter(k => k.vitaminTaken === (vitStatus === 'Complete'));
     return filtered;
 }
@@ -110,9 +147,7 @@ function initFilters() {
     });
 }
 
-// ==========================================
-// FULL MAP LOGIC (map.html)
-// ==========================================
+// MAP LOGIC
 let fullMap;
 
 function initFullMap() {
@@ -126,9 +161,9 @@ function initFullMap() {
 
     balayanBrgys.forEach(brgy => {
         const kids = masterData[brgy];
-        const normal = kids.filter(k => k.status === 'Normal').length;
-        const mal = kids.filter(k => k.status === 'Underweight' || k.status === 'Stunted').length;
-        const obese = kids.filter(k => k.status === 'Obese').length;
+        const normal = kids.filter(k => k.overallStatus === 'Normal').length;
+        const mal = kids.filter(k => k.overallStatus === 'Malnourished').length;
+        const obese = kids.filter(k => k.overallStatus === 'Obese').length;
         
         const totalKids = kids.length;
         const badCases = mal + obese;
@@ -183,10 +218,7 @@ function openInfoPanel(brgy, normal, mal, obese, badCases, colorCode, totalKids)
 
 function closeInfoPanel() { if(document.getElementById('brgy-info-panel')) document.getElementById('brgy-info-panel').classList.remove('open'); }
 
-// ==========================================
-// DASHBOARD LOGIC (dashboard.html)
-// ==========================================
-
+// DASHBOARD CHARTS
 function generateChartData(targetValue) {
     if (targetValue === 0) return months.map(() => 0);
     const data = [];
@@ -213,15 +245,14 @@ function updateTrends() {
     let baseKids = brgy === 'all' ? Object.values(masterData).flat() : masterData[brgy];
     let filteredKids = filterDataList(baseKids, ageRange, selectedStatus, 'all');
 
-    const countNormal = filteredKids.filter(k => k.status === 'Normal').length;
-    const countMal = filteredKids.filter(k => k.status === 'Underweight' || k.status === 'Stunted').length;
-    const countObese = filteredKids.filter(k => k.status === 'Obese').length;
+    const countNormal = filteredKids.filter(k => k.overallStatus === 'Normal').length;
+    const countMal = filteredKids.filter(k => k.overallStatus === 'Malnourished').length;
+    const countObese = filteredKids.filter(k => k.overallStatus === 'Obese').length;
 
     document.getElementById('statNormal').innerText = countNormal;
     document.getElementById('statMal').innerText = countMal;
     document.getElementById('statObese').innerText = countObese;
 
-    // --- 1. UPDATE LINE CHART ---
     const ctxLine = document.getElementById('healthTrendChart').getContext('2d');
     if (healthChart) healthChart.destroy();
     const datasets = [];
@@ -229,7 +260,7 @@ function updateTrends() {
     if(selectedStatus === 'all' || selectedStatus === 'Normal') {
         datasets.push({ label: 'Normal', data: generateChartData(countNormal), borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.1)', fill: true, tension: 0.4 });
     }
-    if(selectedStatus === 'all' || selectedStatus === 'Underweight' || selectedStatus === 'Stunted') {
+    if(selectedStatus === 'all' || selectedStatus === 'Malnourished') {
         datasets.push({ label: 'Malnourished', data: generateChartData(countMal), borderColor: '#d32f2f', backgroundColor: 'rgba(211,47,47,0.1)', fill: true, tension: 0.4 });
     }
     if(selectedStatus === 'all' || selectedStatus === 'Obese') {
@@ -242,7 +273,6 @@ function updateTrends() {
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
     });
 
-    // --- 2. UPDATE BAR CHART (COMPARISON) ---
     const ctxBar = document.getElementById('brgyComparisonChart').getContext('2d');
     if (comparisonChart) comparisonChart.destroy();
 
@@ -252,7 +282,6 @@ function updateTrends() {
     balayanBrgys.forEach(b => {
         let list = masterData[b];
         
-        // Apply Age Filter explicitly for the bar calculation
         if(ageRange !== 'all') {
             if(ageRange === '0-11') list = list.filter(k => k.age <= 11);
             else if(ageRange === '12-23') list = list.filter(k => k.age >= 12 && k.age <= 23);
@@ -263,46 +292,27 @@ function updateTrends() {
         let baseColor = '';
 
         if (selectedStatus === 'all') {
-            barCount = list.filter(k => k.status !== 'Normal').length; // Show Health Cases by default if 'All'
+            barCount = list.filter(k => k.overallStatus !== 'Normal').length; 
             baseColor = '#f57c00'; 
         } else {
-            barCount = list.filter(k => k.status === selectedStatus).length;
+            barCount = list.filter(k => k.overallStatus === selectedStatus).length;
             if (selectedStatus === 'Normal') baseColor = '#2e7d32';
             else if (selectedStatus === 'Obese') baseColor = '#fbc02d';
             else baseColor = '#d32f2f';
         }
 
-        // Highlight Logic: If a specific brgy is selected, dim the others
-        if (brgy !== 'all' && brgy !== b) {
-            baseColor += '40'; // Adds transparency to hex color
-        }
+        if (brgy !== 'all' && brgy !== b) baseColor += '40'; 
 
         barData.push(barCount);
         barColors.push(baseColor);
     });
 
-    let barLabel = selectedStatus === 'all' ? 'Total Health Cases (Malnourished + Obese)' : `Total ${selectedStatus}`;
+    let barLabel = selectedStatus === 'all' ? 'Total Health Cases' : `Total ${selectedStatus}`;
 
     comparisonChart = new Chart(ctxBar, {
         type: 'bar',
-        data: {
-            labels: balayanBrgys,
-            datasets: [{
-                label: barLabel,
-                data: barData,
-                backgroundColor: barColors,
-                borderRadius: 4
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            scales: { 
-                y: { beginAtZero: true, ticks: { precision: 0 } },
-                x: { ticks: { font: { size: 10 } } }
-            },
-            plugins: { legend: { display: false } }
-        }
+        data: { labels: balayanBrgys, datasets: [{ label: barLabel, data: barData, backgroundColor: barColors, borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } }, plugins: { legend: { display: false } } }
     });
 }
 
@@ -326,17 +336,26 @@ function updateRecords() {
             vitaminDisplay = `<span class="badge complete"><i class="fas fa-check"></i> Complete</span>`;
         } else {
             const requiredVits = getVitaminsByAge(k.age);
-            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 12px; margin-bottom: 3px;"><b><i class="fas fa-times"></i></b> ${v}</div>`).join('');
+            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 11px; margin-bottom: 3px;"><i class="fas fa-times"></i> ${v}</div>`).join('');
         }
+
+        let cWFA = k.wfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        let cHFA = k.hfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        let cWFLH = k.wflh.includes('Normal') ? '#2e7d32' : '#d32f2f';
 
         return `
             <tr>
                 <td><strong>${k.name}</strong><br><small>${k.brgy}</small></td>
+                <td>${k.gender}</td>
                 <td>${k.age} mos</td>
-                <td><span style="color: ${k.status === 'Normal' ? '#2e7d32' : (k.status === 'Obese' ? '#fbc02d' : '#d32f2f')}; font-weight:600;">${k.status}</span></td>
+                <td>${k.weight} kg</td>
+                <td>${k.height} cm</td>
+                <td style="color:${cWFA}; font-weight:600; font-size:13px;">${k.wfa}</td>
+                <td style="color:${cHFA}; font-weight:600; font-size:13px;">${k.hfa}</td>
+                <td style="color:${cWFLH}; font-weight:600; font-size:13px;">${k.wflh}</td>
                 <td>${k.sitio}</td>
                 <td>${vitaminDisplay}</td>
-                <td><button class="view-btn" onclick="openProfile('${k.brgy}', '${k.id}')">View Profile</button></td>
+                <td><button class="view-btn" onclick="openProfile('${k.brgy}', '${k.id}')">Profile</button></td>
             </tr>
         `;
     }).join('');
@@ -346,40 +365,29 @@ function updateRecords() {
 function updateReportsView() {
     if(!document.getElementById('reports-table-body')) return;
 
-    // Calculate data for each barangay
     const reportData = balayanBrgys.map(brgy => {
         const kids = masterData[brgy];
         const total = kids.length;
         
-        const normal = kids.filter(k => k.status === 'Normal').length;
-        const underweight = kids.filter(k => k.status === 'Underweight').length;
-        const stunted = kids.filter(k => k.status === 'Stunted').length;
-        const obese = kids.filter(k => k.status === 'Obese').length;
-        
-        // Total health issues = Underweight + Stunted + Obese
-        const totalIssues = underweight + stunted + obese; 
+        const normal = kids.filter(k => k.overallStatus === 'Normal').length;
+        const mal = kids.filter(k => k.overallStatus === 'Malnourished').length;
+        const obese = kids.filter(k => k.overallStatus === 'Obese').length;
+        const totalIssues = mal + obese; 
 
-        return { brgy, total, normal, underweight, stunted, obese, totalIssues };
+        return { brgy, total, normal, mal, obese, totalIssues };
     });
 
-    // Sort the array by highest total health issues (Descending order)
     reportData.sort((a, b) => b.totalIssues - a.totalIssues);
 
-    // Inject into the HTML Table
     const tbody = document.getElementById('reports-table-body');
     tbody.innerHTML = reportData.map(data => `
         <tr>
             <td><strong>Brgy. ${data.brgy}</strong></td>
             <td>${data.total}</td>
             <td><span style="color: #2e7d32; font-weight: 600;">${data.normal}</span></td>
-            <td>${data.underweight}</td>
-            <td>${data.stunted}</td>
+            <td>${data.mal}</td>
             <td>${data.obese}</td>
-            <td>
-                <span style="color: #d32f2f; font-weight: bold; font-size: 16px;">
-                    ${data.totalIssues}
-                </span>
-            </td>
+            <td><span style="color: #d32f2f; font-weight: bold; font-size: 16px;">${data.totalIssues}</span></td>
         </tr>
     `).join('');
 }
@@ -389,10 +397,6 @@ function openProfile(brgy, id) {
     const kid = masterData[brgy].find(k => k.id === id);
     const vits = getVitaminsByAge(kid.age);
     
-    let statusColor = "#2e7d32";
-    if(kid.status === "Obese") statusColor = "#fbc02d";
-    if(kid.status === "Underweight" || kid.status === "Stunted") statusColor = "#d32f2f";
-
     let historyHTML = "";
     const pastMonthsNames = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
     kid.history.forEach((took, i) => {
@@ -401,14 +405,20 @@ function openProfile(brgy, id) {
 
     document.getElementById('modal-data').innerHTML = `
         <div class="profile-header">
-            <div class="profile-avatar"><i class="fas fa-baby"></i></div>
+            <div class="profile-avatar"><i class="fas fa-child"></i></div>
             <div class="profile-title"><h2>${kid.name}</h2><p><i class="fas fa-map-marker-alt"></i> Brgy. ${kid.brgy}, ${kid.sitio}</p></div>
         </div>
         <div class="profile-grid">
             <div>
                 <div class="info-box"><span class="info-label">Parents / Guardian</span><span class="info-value">${kid.parents}</span></div>
-                <div class="info-box"><span class="info-label">Age</span><span class="info-value">${kid.age} Months</span></div>
-                <div class="info-box"><span class="info-label">Nutritional Status</span><span class="info-value" style="color: ${statusColor}; font-weight: bold;">${kid.status}</span></div>
+                <div class="info-box"><span class="info-label">Gender & Age</span><span class="info-value">${kid.gender} | ${kid.age} Months</span></div>
+                
+                <div class="info-box">
+                    <span class="info-label">Current Health Breakdown</span>
+                    <p style="font-size:13px; margin:5px 0;"><strong>WFA:</strong> <span style="color:${kid.wfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${kid.wfa}</span></p>
+                    <p style="font-size:13px; margin:5px 0;"><strong>HFA:</strong> <span style="color:${kid.hfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${kid.hfa}</span></p>
+                    <p style="font-size:13px; margin:5px 0;"><strong>WFL/H:</strong> <span style="color:${kid.wflh.includes('Normal')?'#2e7d32':'#d32f2f'}">${kid.wflh}</span></p>
+                </div>
             </div>
             <div>
                 <div class="vitamin-card" style="border-left: 4px solid ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}">

@@ -8,7 +8,7 @@ const today = new Date();
 const currentMonthString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 const currentMonthName = today.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-// 1. HELPERS: AGE AND BMI CALCULATION
+// HELPERS: AGE AND NUTRITIONAL CALCULATION MOCKS
 function calculateAgeInMonths(birthdateStr) {
     const birthDate = new Date(birthdateStr);
     const currentDate = new Date();
@@ -18,15 +18,33 @@ function calculateAgeInMonths(birthdateStr) {
     return months <= 0 ? 0 : months;
 }
 
-function computeNutritionalStatus(weightKg, heightCm) {
-    if (!weightKg || !heightCm) return "Pending";
-    let heightM = heightCm / 100;
-    let bmi = weightKg / (heightM * heightM);
-    
-    if (bmi < 13.5) return "Underweight";
-    if (bmi >= 13.5 && bmi <= 18.5) return "Normal";
-    if (bmi > 18.5) return "Obese";
-    return "Unknown";
+function computeWFA(weight, ageMonths) {
+    if (!weight) return "Pending";
+    let expectedW = ageMonths * 0.2 + 3.5; 
+    if (weight < expectedW - 3) return "Severely Underweight (suw)";
+    if (weight < expectedW - 1.5) return "Underweight (uw)";
+    if (weight > expectedW + 3) return "Overweight (ow)";
+    return "Normal (n)";
+}
+
+function computeHFA(height, ageMonths) {
+    if (!height) return "Pending";
+    let expectedH = ageMonths * 1.5 + 48;
+    if (height < expectedH - 6) return "Severely Stunted (sst)";
+    if (height < expectedH - 3) return "Stunted (st)";
+    if (height > expectedH + 5) return "Tall (t)";
+    return "Normal (n)";
+}
+
+function computeWFLH(weight, height) {
+    if (!weight || !height) return "Pending";
+    let hM = height / 100;
+    let bmi = weight / (hM * hM);
+    if (bmi < 12.0) return "Severely Wasted (sw)";
+    if (bmi < 13.5) return "Wasted (w)";
+    if (bmi > 18.5) return "Obese (ob)";
+    if (bmi > 17.0) return "Overweight (ow)";
+    return "Normal (n)";
 }
 
 function getVitaminsByAge(ageMonths) {
@@ -35,7 +53,7 @@ function getVitaminsByAge(ageMonths) {
     return ["Vitamin A (High Dose)", "Deworming", "Zinc Supplement"];
 }
 
-// 2. MOCK DATA GENERATION
+// MOCK DATA GENERATION
 function generateMockData() {
     const firstNames = ["Juan", "Maria", "Jose", "Luz", "Pedro", "Ana"];
     const lastNames = ["Santos", "Reyes", "Cruz", "Bautista", "Ocampo"];
@@ -45,29 +63,42 @@ function generateMockData() {
         bDate.setMonth(bDate.getMonth() - Math.floor(Math.random() * 58) - 1);
         const bdateStr = bDate.toISOString().split('T')[0];
         
+        const gender = Math.random() > 0.5 ? "Male" : "Female";
         const checkedThisMonth = Math.random() > 0.4; 
         
         let historyRecords = [];
-        // Add past 5 mock records so history exists
         for (let m = 5; m >= 1; m--) {
             let pDate = new Date();
             pDate.setMonth(pDate.getMonth() - m);
             let pMonth = `${pDate.getFullYear()}-${String(pDate.getMonth() + 1).padStart(2, '0')}`;
+            
+            let w = (Math.random() * 10 + 5).toFixed(1);
+            let h = (Math.random() * 40 + 50).toFixed(1);
+            let age = calculateAgeInMonths(bdateStr);
+            
             historyRecords.push({
                 month: pMonth,
-                weight: (Math.random() * 10 + 5).toFixed(1),
-                height: (Math.random() * 40 + 50).toFixed(1),
-                status: ["Normal", "Underweight", "Obese"][Math.floor(Math.random() * 3)],
+                weight: w,
+                height: h,
+                wfa: computeWFA(w, age),
+                hfa: computeHFA(h, age),
+                wflh: computeWFLH(w, h),
                 vitamins: ["Vitamin A", "Iron Drops"]
             });
         }
 
         if(checkedThisMonth) {
+            let w = (Math.random() * 10 + 5).toFixed(1);
+            let h = (Math.random() * 40 + 50).toFixed(1);
+            let age = calculateAgeInMonths(bdateStr);
+            
             historyRecords.push({
                 month: currentMonthString,
-                weight: (Math.random() * 10 + 5).toFixed(1),
-                height: (Math.random() * 40 + 50).toFixed(1),
-                status: ["Normal", "Underweight", "Obese"][Math.floor(Math.random() * 3)],
+                weight: w,
+                height: h,
+                wfa: computeWFA(w, age),
+                hfa: computeHFA(h, age),
+                wflh: computeWFLH(w, h),
                 vitamins: ["Vitamin A", "Zinc"]
             });
         }
@@ -75,6 +106,7 @@ function generateMockData() {
         childrenData.push({
             id: `KID-${Math.floor(Math.random()*10000)}`,
             name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
+            gender: gender,
             birthdate: bdateStr,
             parents: `Mr. & Mrs. ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
             purok: puroks[Math.floor(Math.random() * puroks.length)],
@@ -83,7 +115,7 @@ function generateMockData() {
     }
 }
 
-// 3. RENDER MASTERLIST
+// RENDER MASTERLIST
 function renderMasterlist() {
     const searchStr = document.getElementById('searchChild').value.toLowerCase();
     const filterPurok = document.getElementById('filterPurok').value;
@@ -110,16 +142,21 @@ function renderMasterlist() {
         let checkupBadge = isCheckedThisMonth 
             ? `<span class="badge complete"><i class="fas fa-check-circle"></i> Checked</span>` 
             : `<span class="badge pending"><i class="fas fa-times-circle"></i> Pending</span>`;
-            
-        let statusDisplay = latestRecord ? latestRecord.status : "No Data";
-        let statusColor = statusDisplay === "Normal" ? "#2e7d32" : (statusDisplay === "Obese" ? "#fbc02d" : (statusDisplay === "No Data" ? "#666" : "#d32f2f"));
+
+        let cWFA = latestRecord && latestRecord.wfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        let cHFA = latestRecord && latestRecord.hfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        let cWFLH = latestRecord && latestRecord.wflh.includes('Normal') ? '#2e7d32' : '#d32f2f';
 
         return `
             <tr>
                 <td><strong>${kid.name}</strong><br><small>${kid.parents}</small></td>
-                <td>${kid.purok}</td>
+                <td>${kid.gender}</td>
                 <td>${age} mos</td>
-                <td><strong style="color:${statusColor}">${statusDisplay}</strong></td>
+                <td>${latestRecord ? latestRecord.weight + ' kg' : '--'}</td>
+                <td>${latestRecord ? latestRecord.height + ' cm' : '--'}</td>
+                <td><strong style="color:${cWFA}; font-size:12px;">${latestRecord ? latestRecord.wfa : '--'}</strong></td>
+                <td><strong style="color:${cHFA}; font-size:12px;">${latestRecord ? latestRecord.hfa : '--'}</strong></td>
+                <td><strong style="color:${cWFLH}; font-size:12px;">${latestRecord ? latestRecord.wflh : '--'}</strong></td>
                 <td>${checkupBadge}</td>
                 <td><button class="view-btn" onclick="openProfile('${kid.id}')">Manage</button></td>
             </tr>
@@ -129,7 +166,7 @@ function renderMasterlist() {
     renderReports();
 }
 
-// 4. ADD NEW CHILD
+// ADD NEW CHILD
 function openAddChildModal() {
     document.getElementById('add-child-form').reset();
     document.getElementById('add-age-preview').innerText = "";
@@ -146,6 +183,7 @@ function submitNewChild(e) {
     const newKid = {
         id: `KID-${Math.floor(Math.random()*10000)}`,
         name: document.getElementById('add-name').value,
+        gender: document.getElementById('add-gender').value,
         birthdate: document.getElementById('add-bday').value,
         parents: document.getElementById('add-parents').value,
         purok: document.getElementById('add-purok').value,
@@ -157,23 +195,24 @@ function submitNewChild(e) {
     alert("New child registered successfully!");
 }
 
-// 5. PROFILE & EDIT MODAL
+// PROFILE & EDIT MODAL
 function openProfile(id) {
     currentEditingId = id;
     const kid = childrenData.find(k => k.id === id);
     const age = calculateAgeInMonths(kid.birthdate);
     
-    // Set text contents
     document.getElementById('prof-name').innerText = kid.name;
-    document.getElementById('prof-subtitle').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${kid.purok} | Age: ${age} mos`;
+    document.getElementById('prof-subtitle').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${kid.purok} | Age: ${age} mos | ${kid.gender}`;
+    
     document.getElementById('view-name').innerText = kid.name;
+    document.getElementById('view-gender').innerText = kid.gender;
     document.getElementById('view-bday').innerText = kid.birthdate;
     document.getElementById('view-parents').innerText = kid.parents;
     document.getElementById('view-purok').innerText = kid.purok;
 
-    // Fill hidden edit form
     document.getElementById('edit-id').value = kid.id;
     document.getElementById('edit-name').value = kid.name;
+    document.getElementById('edit-gender').value = kid.gender;
     document.getElementById('edit-bday').value = kid.birthdate;
     document.getElementById('edit-parents').value = kid.parents;
     document.getElementById('edit-purok').value = kid.purok;
@@ -182,7 +221,6 @@ function openProfile(id) {
     setupAssessmentTab(kid, age);
     populateHistoryTab(kid);
 
-    // Call Safe Tab Switcher
     switchProfileTab('info');
     document.getElementById('childProfileModal').style.display = 'flex';
 }
@@ -198,22 +236,17 @@ function saveChildEdits(e) {
     const kid = childrenData.find(k => k.id === id);
     
     kid.name = document.getElementById('edit-name').value;
+    kid.gender = document.getElementById('edit-gender').value;
     kid.birthdate = document.getElementById('edit-bday').value;
     kid.parents = document.getElementById('edit-parents').value;
     kid.purok = document.getElementById('edit-purok').value;
     
-    document.getElementById('prof-name').innerText = kid.name;
-    document.getElementById('view-name').innerText = kid.name;
-    document.getElementById('view-bday').innerText = kid.birthdate;
-    document.getElementById('view-parents').innerText = kid.parents;
-    document.getElementById('view-purok').innerText = kid.purok;
-
-    toggleEditMode(false); 
+    openProfile(kid.id); 
     renderMasterlist();
     alert("Child Information Updated!");
 }
 
-// 6. MONTHLY ASSESSMENT & CUSTOM VITAMINS
+// MONTHLY ASSESSMENT
 function setupAssessmentTab(kid, age) {
     const latestRecord = kid.records[kid.records.length - 1];
     const isCheckedThisMonth = latestRecord && latestRecord.month === currentMonthString;
@@ -224,14 +257,16 @@ function setupAssessmentTab(kid, age) {
         banner.className = "status-banner success";
         banner.innerHTML = `<i class="fas fa-check-circle"></i> <b>Assessment Completed!</b><br>You have already recorded the data for ${currentMonthName}.`;
         
-        let vitList = latestRecord.vitamins && latestRecord.vitamins.length > 0 
-            ? latestRecord.vitamins.join(", ") : "None Recorded";
+        let vitList = latestRecord.vitamins && latestRecord.vitamins.length > 0 ? latestRecord.vitamins.join(", ") : "None Recorded";
 
         formContainer.innerHTML = `
             <div class="info-box">
-                <p><strong>Weight:</strong> ${latestRecord.weight} kg</p>
-                <p><strong>Height:</strong> ${latestRecord.height} cm</p>
-                <p><strong>Status:</strong> ${latestRecord.status}</p>
+                <p><strong>Weight:</strong> ${latestRecord.weight} kg | <strong>Height:</strong> ${latestRecord.height} cm</p>
+                <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
+                <p><strong>Weight for Age (WFA):</strong> <span style="color:${latestRecord.wfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${latestRecord.wfa}</span></p>
+                <p><strong>Height for Age (HFA):</strong> <span style="color:${latestRecord.hfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${latestRecord.hfa}</span></p>
+                <p><strong>Weight for L/H (WFL/H):</strong> <span style="color:${latestRecord.wflh.includes('Normal')?'#2e7d32':'#d32f2f'}">${latestRecord.wflh}</span></p>
+                <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
                 <p><strong>Vitamins Given:</strong> ${vitList}</p>
             </div>
             <p style="font-size:12px; color:#666; text-align:center; margin-top:15px;">Next checkup is available next month.</p>
@@ -245,16 +280,20 @@ function setupAssessmentTab(kid, age) {
             <div class="form-grid">
                 <div class="input-group">
                     <label>Weight (kg)</label>
-                    <input type="number" step="0.01" id="assess-weight" placeholder="e.g. 10.5" oninput="autoComputeStatus()">
+                    <input type="number" step="0.01" id="assess-weight" placeholder="e.g. 10.5" oninput="autoComputeStatus(${age})">
                 </div>
                 <div class="input-group">
                     <label>Height (cm)</label>
-                    <input type="number" step="0.1" id="assess-height" placeholder="e.g. 75.0" oninput="autoComputeStatus()">
+                    <input type="number" step="0.1" id="assess-height" placeholder="e.g. 75.0" oninput="autoComputeStatus(${age})">
                 </div>
             </div>
             <div class="info-box" style="margin-bottom: 15px; text-align:center;">
                 <span class="info-label">Computed Nutritional Status</span>
-                <span id="computed-status" class="info-value" style="font-size: 20px;">Enter Height & Weight</span>
+                <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+                    <div><small>WFA</small><br><strong id="comp-wfa">--</strong></div>
+                    <div><small>HFA</small><br><strong id="comp-hfa">--</strong></div>
+                    <div><small>WFL/H</small><br><strong id="comp-wflh">--</strong></div>
+                </div>
             </div>
             <h4 style="margin-bottom: 10px;">Vitamins Checklist</h4>
             <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-end;">
@@ -264,7 +303,7 @@ function setupAssessmentTab(kid, age) {
                 <button type="button" class="view-btn" onclick="addCustomVitamin()">+ Add</button>
             </div>
             <div id="vitamins-checkboxes" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;"></div>
-            <button class="add-btn" style="width:100%;" onclick="submitAssessment()">Save Monthly Assessment</button>
+            <button class="add-btn" style="width:100%;" onclick="submitAssessment(${age})">Save Monthly Assessment</button>
         `;
 
         const vits = getVitaminsByAge(age);
@@ -280,7 +319,39 @@ function setupAssessmentTab(kid, age) {
     }
 }
 
-// Fixed function to remove added vitamins via Javascript DOM manipulation
+function autoComputeStatus(ageMonths) {
+    const w = parseFloat(document.getElementById('assess-weight').value);
+    const h = parseFloat(document.getElementById('assess-height').value);
+    
+    if (w) document.getElementById('comp-wfa').innerText = computeWFA(w, ageMonths);
+    if (h) document.getElementById('comp-hfa').innerText = computeHFA(h, ageMonths);
+    if (w && h) document.getElementById('comp-wflh').innerText = computeWFLH(w, h);
+}
+
+function submitAssessment(ageMonths) {
+    const w = parseFloat(document.getElementById('assess-weight').value);
+    const h = parseFloat(document.getElementById('assess-height').value);
+    if(!w || !h) return alert("Please input both weight and height.");
+
+    const checkboxes = document.querySelectorAll('.vit-check:checked');
+    let selectedVits = Array.from(checkboxes).map(cb => cb.value);
+
+    const kid = childrenData.find(k => k.id === currentEditingId);
+    kid.records.push({
+        month: currentMonthString,
+        weight: w,
+        height: h,
+        wfa: computeWFA(w, ageMonths),
+        hfa: computeHFA(h, ageMonths),
+        wflh: computeWFLH(w, h),
+        vitamins: selectedVits
+    });
+
+    renderMasterlist();
+    closeModal('childProfileModal');
+    alert("Monthly Assessment Saved!");
+}
+
 function addCustomVitamin() {
     const input = document.getElementById('custom-vit-input');
     const val = input.value.trim();
@@ -296,54 +367,13 @@ function addCustomVitamin() {
         <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer;">
             <input type="checkbox" value="${val}" class="vit-check" checked> ${val}
         </label>
-        <button type="button" class="remove-vit-btn" onclick="document.getElementById('${uniqueId}').remove()" title="Remove this vitamin">&times;</button>
+        <button type="button" class="remove-vit-btn" onclick="document.getElementById('${uniqueId}').remove()">&times;</button>
     `;
-    
     vitContainer.appendChild(newDiv);
     input.value = ""; 
 }
 
-function autoComputeStatus() {
-    const w = parseFloat(document.getElementById('assess-weight').value);
-    const h = parseFloat(document.getElementById('assess-height').value);
-    const statusText = document.getElementById('computed-status');
-    
-    if (w && h) {
-        const status = computeNutritionalStatus(w, h);
-        statusText.innerText = status;
-        if(status === "Normal") statusText.style.color = "#2e7d32";
-        else if (status === "Obese") statusText.style.color = "#fbc02d";
-        else statusText.style.color = "#d32f2f";
-    } else {
-        statusText.innerText = "Enter Height & Weight";
-        statusText.style.color = "#333";
-    }
-}
-
-function submitAssessment() {
-    const w = parseFloat(document.getElementById('assess-weight').value);
-    const h = parseFloat(document.getElementById('assess-height').value);
-    if(!w || !h) return alert("Please input both weight and height.");
-
-    const status = computeNutritionalStatus(w, h);
-    const checkboxes = document.querySelectorAll('.vit-check:checked');
-    let selectedVits = Array.from(checkboxes).map(cb => cb.value);
-
-    const kid = childrenData.find(k => k.id === currentEditingId);
-    kid.records.push({
-        month: currentMonthString,
-        weight: w,
-        height: h,
-        status: status,
-        vitamins: selectedVits
-    });
-
-    renderMasterlist();
-    closeModal('childProfileModal');
-    alert("Monthly Assessment Saved!");
-}
-
-// 7. HISTORY TAB (Restricted to last 5 months)
+// HISTORY TAB 
 function populateHistoryTab(kid) {
     const tbody = document.getElementById('history-table-body');
     if(kid.records.length === 0) {
@@ -351,27 +381,27 @@ function populateHistoryTab(kid) {
         return;
     }
     
-    // Reverse the records and take only the first 5
     const recordsToShow = [...kid.records].reverse().slice(0, 5);
     
     tbody.innerHTML = recordsToShow.map(rec => {
-        let vitDisplay = rec.vitamins && rec.vitamins.length > 0 ? rec.vitamins.join(', ') : 'None';
-        let statusColor = rec.status === "Normal" ? "#2e7d32" : (rec.status === "Obese" ? "#fbc02d" : "#d32f2f");
+        let colWFA = rec.wfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        let colHFA = rec.hfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        let colWFLH = rec.wflh.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        
         return `
             <tr>
                 <td><strong>${rec.month}</strong></td>
-                <td>${rec.weight} kg</td>
-                <td>${rec.height} cm</td>
-                <td style="color:${statusColor}; font-weight:bold;">${rec.status}</td>
-                <td style="font-size:12px;">${vitDisplay}</td>
+                <td>${rec.weight}kg / ${rec.height}cm</td>
+                <td style="color:${colWFA}; font-weight:bold;">${rec.wfa}</td>
+                <td style="color:${colHFA}; font-weight:bold;">${rec.hfa}</td>
+                <td style="color:${colWFLH}; font-weight:bold;">${rec.wflh}</td>
             </tr>
         `;
     }).join('');
 }
 
-// 8. REPORTS GENERATION
+// REPORTS GENERATION
 function renderReports() {
-    // Get the selected month or default to the current month string
     const selectedMonth = document.getElementById('reportMonthFilter').value || currentMonthString;
     
     let total = childrenData.length;
@@ -379,23 +409,28 @@ function renderReports() {
     let issuesListHTML = "";
 
     childrenData.forEach(kid => {
-        // Find the record matching the selected month
         const monthRecord = kid.records.find(r => r.month === selectedMonth);
         const age = calculateAgeInMonths(kid.birthdate);
         
         if (monthRecord) {
-            if (monthRecord.status === "Normal") normal++;
-            if (monthRecord.status === "Underweight" || monthRecord.status === "Stunted") mal++;
-            if (monthRecord.status === "Obese") obese++;
+            if (monthRecord.wfa.includes("Normal") && monthRecord.hfa.includes("Normal") && monthRecord.wflh.includes("Normal")) {
+                normal++;
+            } else {
+                if (monthRecord.wfa.includes("Underweight") || monthRecord.hfa.includes("Stunted") || monthRecord.wflh.includes("Wasted")) mal++;
+                if (monthRecord.wflh.includes("Obese") || monthRecord.wfa.includes("Overweight")) obese++;
+                
+                let issues = [];
+                if(!monthRecord.wfa.includes("Normal")) issues.push(`WFA: ${monthRecord.wfa}`);
+                if(!monthRecord.hfa.includes("Normal")) issues.push(`HFA: ${monthRecord.hfa}`);
+                if(!monthRecord.wflh.includes("Normal")) issues.push(`WFL/H: ${monthRecord.wflh}`);
 
-            if (monthRecord.status !== "Normal") {
                 issuesListHTML += `
                     <tr>
                         <td><strong>${kid.name}</strong></td>
+                        <td>${kid.gender}</td>
                         <td>${age} mos</td>
                         <td>${kid.purok}</td>
-                        <td style="color:${monthRecord.status === 'Obese' ? '#fbc02d' : '#d32f2f'}; font-weight:bold;">${monthRecord.status}</td>
-                        <td>${monthRecord.month}</td>
+                        <td style="color:#d32f2f; font-size: 13px;">${issues.join('<br>')}</td>
                     </tr>
                 `;
             }
@@ -409,13 +444,11 @@ function renderReports() {
     document.getElementById('reports-table-body').innerHTML = issuesListHTML || `<tr><td colspan="5" style="text-align:center;">No health issues recorded for this month.</td></tr>`;
 }
 
-// 9. SUBMIT REPORT
 function submitReportToAdmin() {
     const selectedMonth = document.getElementById('reportMonthFilter').value || currentMonthString;
     alert(`Report for ${selectedMonth} has been submitted to the Admin successfully!`);
 }
 
-// UTILITIES & BUG FIXES
 function switchBNSView(view) {
     document.getElementById('masterlist-view').style.display = view === 'masterlist' ? 'block' : 'none';
     document.getElementById('reports-view').style.display = view === 'reports' ? 'block' : 'none';
@@ -439,7 +472,6 @@ function switchProfileTab(tab) {
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Set the month picker to the current month initially
     if(document.getElementById('reportMonthFilter')) {
         document.getElementById('reportMonthFilter').value = currentMonthString;
     }

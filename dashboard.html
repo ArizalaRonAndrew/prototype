@@ -43,10 +43,9 @@
                             <option value="24-59">24-59 Months</option>
                         </select>
                         <select id="trendStatus" onchange="updateTrends()">
-                            <option value="all">All Statuses</option>
+                            <option value="all">Overall Status</option>
                             <option value="Normal">Normal</option>
-                            <option value="Underweight">Underweight</option>
-                            <option value="Stunted">Stunted</option>
+                            <option value="Malnourished">Malnourished</option>
                             <option value="Obese">Obese</option>
                         </select>
                     </div>
@@ -97,7 +96,7 @@
                 <header class="dashboard-header">
                     <div class="header-titles">
                         <h1>Barangay Masterlist</h1>
-                        <p>Detailed list of children and vitamin compliance.</p>
+                        <p>Detailed list of children, dimensions, and statuses.</p>
                     </div>
                     <div class="filters-container">
                         <select id="filterBrgy" onchange="updateRecords()"></select>
@@ -108,10 +107,9 @@
                             <option value="24-59">24-59 Months</option>
                         </select>
                         <select id="filterStatus" onchange="updateRecords()">
-                            <option value="all">All Statuses</option>
+                            <option value="all">Overall Status</option>
                             <option value="Normal">Normal</option>
-                            <option value="Underweight">Underweight</option>
-                            <option value="Stunted">Stunted</option>
+                            <option value="Malnourished">Malnourished</option>
                             <option value="Obese">Obese</option>
                         </select>
                         <select id="filterVitamin" onchange="updateRecords()">
@@ -138,10 +136,15 @@
                         <thead>
                             <tr>
                                 <th>Name of Child</th>
+                                <th>Gender</th>
                                 <th>Age</th>
-                                <th>Status</th>
+                                <th>Weight</th>
+                                <th>Height</th>
+                                <th>WFA</th>
+                                <th>HFA</th>
+                                <th>WFL/H</th>
                                 <th>Sitio/Purok</th>
-                                <th>Vitamin Compliance</th>
+                                <th>Vitamins</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -165,8 +168,7 @@
                                 <th>Barangay Name</th>
                                 <th>Total Registered</th>
                                 <th>Normal</th>
-                                <th>Underweight</th>
-                                <th>Stunted</th>
+                                <th>Malnourished</th>
                                 <th>Obese</th>
                                 <th style="color: #d32f2f;">Total Health Issues</th>
                             </tr>

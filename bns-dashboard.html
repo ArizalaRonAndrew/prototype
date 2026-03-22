@@ -56,10 +56,14 @@
                         <thead>
                             <tr>
                                 <th>Name of Child</th>
-                                <th>Purok</th>
-                                <th>Age (Months)</th>
-                                <th>Current Status</th>
-                                <th>This Month's Checkup</th>
+                                <th>Gender</th>
+                                <th>Age</th>
+                                <th>Weight</th>
+                                <th>Height</th>
+                                <th>WFA</th>
+                                <th>HFA</th>
+                                <th>WFL/H</th>
+                                <th>Checkup</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -83,7 +87,7 @@
 
                 <section class="stats-cards">
                     <div class="card normal">
-                        <div class="card-icon"><i class="fas fa-baby"></i></div>
+                        <div class="card-icon"><i class="fas fa-child"></i></div>
                         <div>
                             <h4>Total Registered</h4>
                             <p id="rep-total" class="stat-num">0</p>
@@ -92,7 +96,7 @@
                     <div class="card normal">
                         <div class="card-icon"><i class="fas fa-check-circle" style="color:#2e7d32"></i></div>
                         <div>
-                            <h4>Normal Status</h4>
+                            <h4>Normal (All Metrics)</h4>
                             <p id="rep-normal" class="stat-num">0</p>
                         </div>
                     </div>
@@ -118,10 +122,10 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Gender</th>
                                 <th>Age</th>
                                 <th>Purok</th>
-                                <th>Issue / Status</th>
-                                <th>Last Weighed</th>
+                                <th>Issue Found (WFA/HFA/WFLH)</th>
                             </tr>
                         </thead>
                         <tbody id="reports-table-body"></tbody>
@@ -140,6 +144,13 @@
                     <div class="input-group">
                         <label>Full Name</label>
                         <input type="text" id="add-name" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Gender</label>
+                        <select id="add-gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
                     </div>
                     <div class="input-group">
                         <label>Birthdate</label>
@@ -171,7 +182,7 @@
             <span class="close-btn" onclick="closeModal('childProfileModal')">&times;</span>
             
             <div class="profile-header" style="margin-bottom: 10px;">
-                <div class="profile-avatar"><i class="fas fa-baby"></i></div>
+                <div class="profile-avatar"><i class="fas fa-child"></i></div>
                 <div class="profile-title">
                     <h2 id="prof-name">Name</h2>
                     <p id="prof-subtitle"><i class="fas fa-map-marker-alt"></i> Purok</p>
@@ -188,6 +199,7 @@
                 <div id="info-view-mode">
                     <div class="form-grid">
                         <div class="info-box"><span class="info-label">Child's Name</span><span id="view-name" class="info-value"></span></div>
+                        <div class="info-box"><span class="info-label">Gender</span><span id="view-gender" class="info-value"></span></div>
                         <div class="info-box"><span class="info-label">Birthdate</span><span id="view-bday" class="info-value"></span></div>
                         <div class="info-box"><span class="info-label">Parents</span><span id="view-parents" class="info-value"></span></div>
                         <div class="info-box"><span class="info-label">Purok</span><span id="view-purok" class="info-value"></span></div>
@@ -202,6 +214,13 @@
                         <div class="input-group">
                             <label>Child's Name</label>
                             <input type="text" id="edit-name" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Gender</label>
+                            <select id="edit-gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
                         </div>
                         <div class="input-group">
                             <label>Birthdate</label>
@@ -240,10 +259,10 @@
                     <thead>
                         <tr>
                             <th>Month</th>
-                            <th>Weight</th>
-                            <th>Height</th>
-                            <th>Status</th>
-                            <th>Vitamins Taken</th>
+                            <th>Weight/Height</th>
+                            <th>WFA</th>
+                            <th>HFA</th>
+                            <th>WFL/H</th>
                         </tr>
                     </thead>
                     <tbody id="history-table-body"></tbody>
