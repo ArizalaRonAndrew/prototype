@@ -18,14 +18,14 @@ body.dashboard-body {
     display: flex;
     height: 100vh;
     width: 100vw;
-    overflow: hidden; /* Prevents whole page from shifting */
+    overflow: hidden; 
 }
 
 .sidebar {
     width: 260px;
-    min-width: 260px; /* CRITICAL: Locks the size */
-    max-width: 260px; /* CRITICAL: Locks the size */
-    flex-shrink: 0;   /* CRITICAL: Prevents tables from squishing the sidebar */
+    min-width: 260px; 
+    max-width: 260px; 
+    flex-shrink: 0;   
     background-color: #1b5e20;
     color: #fff;
     display: flex;
@@ -80,7 +80,7 @@ body.dashboard-body {
 /* Main Content Styles */
 .main-content {
     flex-grow: 1;
-    width: calc(100% - 260px); /* Strictly fills remaining space */
+    width: calc(100% - 260px); 
     padding: 30px 40px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -242,6 +242,15 @@ body.dashboard-body {
     position: relative;
     max-height: 90vh;
     overflow-y: auto;
+    
+    /* SCROLLBAR REMOVAL PROPERTIES */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* HIDE SCROLLBAR Chrome, Safari and Opera */
+.modal-content::-webkit-scrollbar {
+    display: none;
 }
 
 .profile-modal-width { width: 500px; }

@@ -59,7 +59,6 @@ function generateMockData() {
     const lastNames = ["Gomez", "Castromero", "Macalalad", "Perez", "Dela Cuesta", "Castromero", "Dela Cuesta", "Castromero", "Natividad", "De Padua", "Baon", "Macalalad", "Sale", "Santos", "Reyes"];
     const parentNames = ["Bautista, Angelique", "Castromero, Richard", "Macalalad, Leahrose", "Perez, Jennelyn", "Dela Cuesta, Rowena", "Castromero, Carla", "Dela Cuesta, Rowena", "Castromero, Anselma", "Natividad, Rhegine", "De Padua, Joanna", "Baon, Mina", "Macalalad, Laarni", "Dacaymat, Josalyn", "Santos, Maria", "Reyes, Elena"];
     
-    // Predetermined Specific cases. Lots of Normal, 1 of each special condition
     const conditions = ["N", "N", "OW", "N", "OB", "N", "N", "N", "N", "N", "ST", "N", "N", "UW", "MW"];
 
     for(let i=0; i<15; i++) {
@@ -76,7 +75,6 @@ function generateMockData() {
         let w = expectedW;
         let h = expectedH;
 
-        // Force weights/heights to fit the predetermined target condition
         if (conditions[i] === "UW") { w = expectedW - 2.0; }
         else if (conditions[i] === "OW") { w = expectedW + 3.5; }
         else if (conditions[i] === "OB") { w = expectedW + 5.5; }
@@ -85,8 +83,7 @@ function generateMockData() {
 
         let historyRecords = [];
         
-        // Make the last 3 children "Pending" for the current month
-        let isPendingThisMonth = i >= 12; // Children 12, 13, and 14 will NOT have a record for current month
+        let isPendingThisMonth = i >= 12; 
 
         if (!isPendingThisMonth) {
             historyRecords.push({
@@ -201,7 +198,6 @@ function openProfile(id) {
     document.getElementById('view-parents').innerText = kid.parents;
     document.getElementById('view-purok').innerText = kid.purok;
 
-    // Capitalize inputs logic for editing
     let nameParts = kid.name.split(', ');
     document.getElementById('edit-name').value = nameParts.length > 1 ? `${nameParts[1]} ${nameParts[0]}` : kid.name; 
     document.getElementById('edit-gender').value = kid.gender;
@@ -244,7 +240,7 @@ function saveChildEdits(e) {
     alert("Child Information Updated!");
 }
 
-// MONTHLY ASSESSMENT
+// MONTHLY ASSESSMENT (COMPACTED TO AVOID OVERFLOWING THE SCREEN)
 function setupAssessmentTab(kid, age) {
     const latestRecord = kid.records[kid.records.length - 1];
     const isCheckedThisMonth = latestRecord && latestRecord.month === currentMonthString;
@@ -253,62 +249,64 @@ function setupAssessmentTab(kid, age) {
 
     if (isCheckedThisMonth) {
         banner.className = "status-banner success";
-        banner.innerHTML = `<i class="fas fa-check-circle"></i> <b>Assessment Completed!</b><br>You have already recorded the data for ${currentMonthName}.`;
+        banner.style.marginBottom = "10px"; // Compacted
+        banner.innerHTML = `<i class="fas fa-check-circle"></i> <b>Assessment Completed!</b>`;
         
         let vitList = latestRecord.vitamins && latestRecord.vitamins.length > 0 ? latestRecord.vitamins.join(", ") : "None Recorded";
 
         formContainer.innerHTML = `
-            <div class="info-box">
-                <p><strong>Weight:</strong> ${latestRecord.weight} kg | <strong>Height:</strong> ${latestRecord.height} cm</p>
+            <div class="info-box" style="padding: 15px; margin-bottom: 10px;">
+                <p style="margin-bottom: 5px;"><strong>Weight:</strong> ${latestRecord.weight} kg | <strong>Height:</strong> ${latestRecord.height} cm</p>
                 <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
-                <p><strong>Weight for Age (WFA):</strong> <span style="color:${latestRecord.wfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wfa}</span></p>
-                <p><strong>Height for Age (HFA):</strong> <span style="color:${latestRecord.hfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.hfa}</span></p>
-                <p><strong>Weight for L/H (WFL/H):</strong> <span style="color:${latestRecord.wflh==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wflh}</span></p>
+                <p style="margin-bottom: 3px; font-size:13px;"><strong>WFA:</strong> <span style="color:${latestRecord.wfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wfa}</span></p>
+                <p style="margin-bottom: 3px; font-size:13px;"><strong>HFA:</strong> <span style="color:${latestRecord.hfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.hfa}</span></p>
+                <p style="margin-bottom: 3px; font-size:13px;"><strong>WFL/H:</strong> <span style="color:${latestRecord.wflh==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wflh}</span></p>
                 <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
-                <p><strong>Vitamins Given:</strong> ${vitList}</p>
+                <p style="font-size:13px;"><strong>Vitamins Given:</strong> ${vitList}</p>
             </div>
-            <p style="font-size:12px; color:#666; text-align:center; margin-top:15px;">Next checkup is available next month.</p>
+            <p style="font-size:11px; color:#666; text-align:center;">Next checkup is available next month.</p>
         `;
     } else {
         banner.className = "status-banner warning";
-        banner.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <b>Pending Checkup</b><br>Please enter the height, weight, and vitamin intake for ${currentMonthName}.`;
+        banner.style.marginBottom = "10px"; // Compacted
+        banner.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <b>Pending Checkup</b>`;
         
         formContainer.innerHTML = `
-            <h3 style="margin-bottom: 15px;">New Checkup (<span id="current-month-label">${currentMonthName}</span>)</h3>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label>Weight (kg)</label>
-                    <input type="number" step="0.01" id="assess-weight" placeholder="e.g. 10.5" oninput="autoComputeStatus(${age})">
+            <h3 style="margin-bottom: 10px; font-size:16px;">New Checkup (<span id="current-month-label">${currentMonthName}</span>)</h3>
+            <div class="form-grid" style="margin-bottom: 10px; gap: 10px;">
+                <div class="input-group" style="margin-bottom: 5px;">
+                    <label style="font-size:12px; margin-bottom: 2px;">Weight (kg)</label>
+                    <input type="number" step="0.01" id="assess-weight" placeholder="e.g. 10.5" style="padding: 8px;" oninput="autoComputeStatus(${age})">
                 </div>
-                <div class="input-group">
-                    <label>Height (cm)</label>
-                    <input type="number" step="0.1" id="assess-height" placeholder="e.g. 75.0" oninput="autoComputeStatus(${age})">
+                <div class="input-group" style="margin-bottom: 5px;">
+                    <label style="font-size:12px; margin-bottom: 2px;">Height (cm)</label>
+                    <input type="number" step="0.1" id="assess-height" placeholder="e.g. 75.0" style="padding: 8px;" oninput="autoComputeStatus(${age})">
                 </div>
             </div>
-            <div class="info-box" style="margin-bottom: 15px; text-align:center;">
-                <span class="info-label">Computed Nutritional Status</span>
-                <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+            <div class="info-box" style="margin-bottom: 10px; padding: 10px; text-align:center;">
+                <span class="info-label" style="margin-bottom: 0;">Computed Nutritional Status</span>
+                <div style="display: flex; justify-content: space-around; margin-top: 5px;">
                     <div><small>WFA</small><br><strong id="comp-wfa">--</strong></div>
                     <div><small>HFA</small><br><strong id="comp-hfa">--</strong></div>
                     <div><small>WFL/H</small><br><strong id="comp-wflh">--</strong></div>
                 </div>
             </div>
-            <h4 style="margin-bottom: 10px;">Vitamins Checklist</h4>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-end;">
+            <h4 style="margin-bottom: 5px; font-size:14px;">Vitamins Checklist</h4>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end;">
                 <div class="input-group" style="margin-bottom: 0; flex-grow: 1;">
-                    <input type="text" id="custom-vit-input" placeholder="Add specific vitamin (e.g. Vitamin C Drops)">
+                    <input type="text" id="custom-vit-input" placeholder="Add specific vitamin..." style="padding: 8px;">
                 </div>
-                <button type="button" class="view-btn" onclick="addCustomVitamin()">+ Add</button>
+                <button type="button" class="view-btn" style="padding: 8px 12px;" onclick="addCustomVitamin()">+ Add</button>
             </div>
-            <div id="vitamins-checkboxes" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;"></div>
-            <button class="add-btn" style="width:100%;" onclick="submitAssessment(${age})">Save Monthly Assessment</button>
+            <div id="vitamins-checkboxes" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"></div>
+            <button class="add-btn" style="width:100%; padding: 12px;" onclick="submitAssessment(${age})">Save Monthly Assessment</button>
         `;
 
         const vits = getVitaminsByAge(age);
         const vitContainer = document.getElementById('vitamins-checkboxes');
         
         vitContainer.innerHTML = vits.map((v, i) => `
-            <div class="vit-label-container">
+            <div class="vit-label-container" style="font-size:12px;">
                 <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer;">
                     <input type="checkbox" value="${v}" class="vit-check" checked> ${v}
                 </label>
@@ -361,12 +359,13 @@ function addCustomVitamin() {
     
     const newDiv = document.createElement('div');
     newDiv.className = 'vit-label-container';
+    newDiv.style.fontSize = '12px';
     newDiv.id = uniqueId;
     newDiv.innerHTML = `
         <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer;">
             <input type="checkbox" value="${val}" class="vit-check" checked> ${val}
         </label>
-        <button type="button" class="remove-vit-btn" onclick="document.getElementById('${uniqueId}').remove()">&times;</button>
+        <button type="button" class="remove-vit-btn" style="border:none; background:none; color:red; cursor:pointer; font-weight:bold;" onclick="document.getElementById('${uniqueId}').remove()">&times;</button>
     `;
     vitContainer.appendChild(newDiv);
     input.value = ""; 
@@ -399,7 +398,7 @@ function populateHistoryTab(kid) {
     }).join('');
 }
 
-// REPORTS GENERATION (Clean Report logic)
+// REPORTS GENERATION 
 function getStatusBadge(status) {
     if (status === "N") return `<span class="badge-status badge-normal">N</span>`;
     if (["OW", "OB", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
