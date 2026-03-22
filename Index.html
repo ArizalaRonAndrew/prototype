@@ -10,21 +10,51 @@
 </head>
 <body class="login-body">
     <div class="login-container">
-        <form onsubmit="event.preventDefault(); window.location.href='dashboard.html'">
-            <div class="logo-area"><i class="fas fa-balance-scale"></i><i class="fas fa-baby"></i></div>
+        <form onsubmit="handleLogin(event)">
+            <div class="logo-area">
+                <i class="fas fa-balance-scale"></i>
+                <i class="fas fa-child"></i>
+            </div>
             <h2>Weigh To Go Portal</h2>
             <p class="subtitle">Balayan Health & Nutrition</p>
             
             <div class="input-group">
-                <label>Email Address</label>
-                <input type="email" id="email" placeholder="admin@health.gov.ph" required>
+                <label>Login As</label>
+                <select id="role" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; cursor: pointer; background: white;">
+                    <option value="admin">Administrator (Admin)</option>
+                    <option value="bns">Barangay Nutrition Scholar (BNS)</option>
+                </select>
             </div>
+            
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="user@health.gov.ph" required>
+            </div>
+            
             <div class="input-group">
                 <label>Password</label>
                 <input type="password" id="password" placeholder="••••••••" required>
             </div>
+            
             <button type="submit" class="login-btn">Access Dashboard</button>
         </form>
     </div>
+
+    <script>
+        function handleLogin(event) {
+            // Prevent the form from refreshing the page
+            event.preventDefault();
+            
+            // Get the selected role
+            const role = document.getElementById('role').value;
+            
+            // Redirect based on the selection
+            if (role === 'admin') {
+                window.location.href = 'dashboard.html';
+            } else if (role === 'bns') {
+                window.location.href = 'bns-dashboard.html';
+            }
+        }
+    </script>
 </body>
 </html>
