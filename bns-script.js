@@ -1,6 +1,5 @@
 // Initialization Constants
 const currentBrgy = "Brgy. Caloocan";
-const puroks = ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"];
 let childrenData = [];
 let currentEditingId = null;
 
@@ -21,30 +20,30 @@ function calculateAgeInMonths(birthdateStr) {
 function computeWFA(weight, ageMonths) {
     if (!weight) return "Pending";
     let expectedW = ageMonths * 0.2 + 3.5; 
-    if (weight < expectedW - 3) return "Severely Underweight (suw)";
-    if (weight < expectedW - 1.5) return "Underweight (uw)";
-    if (weight > expectedW + 3) return "Overweight (ow)";
-    return "Normal (n)";
+    if (weight < expectedW - 3) return "SUW"; // Severely Underweight
+    if (weight < expectedW - 1.5) return "UW"; // Underweight
+    if (weight > expectedW + 3) return "OW"; // Overweight
+    return "N"; // Normal
 }
 
 function computeHFA(height, ageMonths) {
     if (!height) return "Pending";
     let expectedH = ageMonths * 1.5 + 48;
-    if (height < expectedH - 6) return "Severely Stunted (sst)";
-    if (height < expectedH - 3) return "Stunted (st)";
-    if (height > expectedH + 5) return "Tall (t)";
-    return "Normal (n)";
+    if (height < expectedH - 6) return "SSt"; // Severely Stunted
+    if (height < expectedH - 3) return "St"; // Stunted
+    if (height > expectedH + 5) return "T"; // Tall
+    return "N"; // Normal
 }
 
 function computeWFLH(weight, height) {
     if (!weight || !height) return "Pending";
     let hM = height / 100;
     let bmi = weight / (hM * hM);
-    if (bmi < 12.0) return "Severely Wasted (sw)";
-    if (bmi < 13.5) return "Wasted (w)";
-    if (bmi > 18.5) return "Obese (ob)";
-    if (bmi > 17.0) return "Overweight (ow)";
-    return "Normal (n)";
+    if (bmi < 12.0) return "SW"; // Severely Wasted
+    if (bmi < 13.5) return "W"; // Wasted
+    if (bmi > 18.5) return "Ob"; // Obese
+    if (bmi > 17.0) return "OW"; // Overweight
+    return "N"; // Normal
 }
 
 function getVitaminsByAge(ageMonths) {
@@ -53,63 +52,55 @@ function getVitaminsByAge(ageMonths) {
     return ["Vitamin A (High Dose)", "Deworming", "Zinc Supplement"];
 }
 
-// MOCK DATA GENERATION
+// MOCK DATA GENERATION - Strict 15 Children Array matching the prompt's layout
 function generateMockData() {
-    const firstNames = ["Juan", "Maria", "Jose", "Luz", "Pedro", "Ana"];
-    const lastNames = ["Santos", "Reyes", "Cruz", "Bautista", "Ocampo"];
+    const firstNames = ["James Andrei", "Rayvin", "Dylan Charles", "Ethan Jake", "Weldion", "Carlo", "Wilford", "Princess Ann", "Clyde Allen", "Clyde Yohann", "Andrei Shann", "Enzo Mateo", "Craige Anthony", "Liana", "Mia"];
+    const lastNames = ["Gomez", "Castromero", "Macalalad", "Perez", "Dela Cuesta", "Castromero", "Dela Cuesta", "Castromero", "Natividad", "De Padua", "Baon", "Macalalad", "Sale", "Santos", "Reyes"];
+    const parentNames = ["Bautista, Angelique", "Castromero, Richard", "Macalalad, Leahrose", "Perez, Jennelyn", "Dela Cuesta, Rowena", "Castromero, Carla", "Dela Cuesta, Rowena", "Castromero, Anselma", "Natividad, Rhegine", "De Padua, Joanna", "Baon, Mina", "Macalalad, Laarni", "Dacaymat, Josalyn", "Santos, Maria", "Reyes, Elena"];
     
-    for(let i=1; i<=15; i++) {
+    // Predetermined Specific cases. Lots of Normal, 1 of each special condition
+    const conditions = ["N", "N", "OW", "N", "Ob", "N", "N", "N", "N", "N", "St", "N", "N", "UW", "W"];
+
+    for(let i=0; i<15; i++) {
         const bDate = new Date();
-        bDate.setMonth(bDate.getMonth() - Math.floor(Math.random() * 58) - 1);
+        let ageMonths = Math.floor(Math.random() * 40) + 12; 
+        bDate.setMonth(bDate.getMonth() - ageMonths);
         const bdateStr = bDate.toISOString().split('T')[0];
         
-        const gender = Math.random() > 0.5 ? "Male" : "Female";
-        const checkedThisMonth = Math.random() > 0.4; 
+        const gender = (i === 7 || i >= 13) ? "Female" : "Male";
         
-        let historyRecords = [];
-        for (let m = 5; m >= 1; m--) {
-            let pDate = new Date();
-            pDate.setMonth(pDate.getMonth() - m);
-            let pMonth = `${pDate.getFullYear()}-${String(pDate.getMonth() + 1).padStart(2, '0')}`;
-            
-            let w = (Math.random() * 10 + 5).toFixed(1);
-            let h = (Math.random() * 40 + 50).toFixed(1);
-            let age = calculateAgeInMonths(bdateStr);
-            
-            historyRecords.push({
-                month: pMonth,
-                weight: w,
-                height: h,
-                wfa: computeWFA(w, age),
-                hfa: computeHFA(h, age),
-                wflh: computeWFLH(w, h),
-                vitamins: ["Vitamin A", "Iron Drops"]
-            });
-        }
+        let expectedW = ageMonths * 0.2 + 3.5; 
+        let expectedH = ageMonths * 1.5 + 48;
+        
+        let w = expectedW;
+        let h = expectedH;
 
-        if(checkedThisMonth) {
-            let w = (Math.random() * 10 + 5).toFixed(1);
-            let h = (Math.random() * 40 + 50).toFixed(1);
-            let age = calculateAgeInMonths(bdateStr);
-            
-            historyRecords.push({
-                month: currentMonthString,
-                weight: w,
-                height: h,
-                wfa: computeWFA(w, age),
-                hfa: computeHFA(h, age),
-                wflh: computeWFLH(w, h),
-                vitamins: ["Vitamin A", "Zinc"]
-            });
-        }
+        // Force weights/heights to fit the predetermined target condition
+        if (conditions[i] === "UW") { w = expectedW - 2.0; }
+        else if (conditions[i] === "OW") { w = expectedW + 3.5; }
+        else if (conditions[i] === "Ob") { w = expectedW + 5.5; }
+        else if (conditions[i] === "St") { h = expectedH - 4.5; }
+        else if (conditions[i] === "W") { w = expectedW - 2.5; h = expectedH + 2.0; }
+
+        let historyRecords = [];
+        historyRecords.push({
+            month: currentMonthString,
+            dateMeasured: currentMonthString + "-15", // Mock a measurement date in the middle of the month
+            weight: w.toFixed(1),
+            height: h.toFixed(1),
+            wfa: computeWFA(w, ageMonths),
+            hfa: computeHFA(h, ageMonths),
+            wflh: computeWFLH(w, h),
+            vitamins: ["Vitamin A"]
+        });
 
         childrenData.push({
             id: `KID-${Math.floor(Math.random()*10000)}`,
-            name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
+            name: `${lastNames[i]}, ${firstNames[i]}`.toUpperCase(),
             gender: gender,
             birthdate: bdateStr,
-            parents: `Mr. & Mrs. ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-            purok: puroks[Math.floor(Math.random() * puroks.length)],
+            parents: parentNames[i].toUpperCase(),
+            purok: "PUROK " + (Math.floor(i/3) + 1),
             records: historyRecords
         });
     }
@@ -125,7 +116,7 @@ function renderMasterlist() {
     let filtered = childrenData;
 
     if (searchStr) filtered = filtered.filter(k => k.name.toLowerCase().includes(searchStr));
-    if (filterPurok !== 'all') filtered = filtered.filter(k => k.purok === filterPurok);
+    if (filterPurok !== 'all') filtered = filtered.filter(k => k.purok === filterPurok.toUpperCase());
     if (filterStatus !== 'all') {
         filtered = filtered.filter(kid => {
             const latestRecord = kid.records[kid.records.length - 1];
@@ -143,20 +134,13 @@ function renderMasterlist() {
             ? `<span class="badge complete"><i class="fas fa-check-circle"></i> Checked</span>` 
             : `<span class="badge pending"><i class="fas fa-times-circle"></i> Pending</span>`;
 
-        let cWFA = latestRecord && latestRecord.wfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
-        let cHFA = latestRecord && latestRecord.hfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
-        let cWFLH = latestRecord && latestRecord.wflh.includes('Normal') ? '#2e7d32' : '#d32f2f';
-
         return `
             <tr>
-                <td><strong>${kid.name}</strong><br><small>${kid.parents}</small></td>
+                <td><strong>${kid.name}</strong></td>
+                <td>${kid.parents}</td>
                 <td>${kid.gender}</td>
-                <td>${age} mos</td>
-                <td>${latestRecord ? latestRecord.weight + ' kg' : '--'}</td>
-                <td>${latestRecord ? latestRecord.height + ' cm' : '--'}</td>
-                <td><strong style="color:${cWFA}; font-size:12px;">${latestRecord ? latestRecord.wfa : '--'}</strong></td>
-                <td><strong style="color:${cHFA}; font-size:12px;">${latestRecord ? latestRecord.hfa : '--'}</strong></td>
-                <td><strong style="color:${cWFLH}; font-size:12px;">${latestRecord ? latestRecord.wflh : '--'}</strong></td>
+                <td>${age}</td>
+                <td>${kid.purok}</td>
                 <td>${checkupBadge}</td>
                 <td><button class="view-btn" onclick="openProfile('${kid.id}')">Manage</button></td>
             </tr>
@@ -182,11 +166,11 @@ function submitNewChild(e) {
     e.preventDefault();
     const newKid = {
         id: `KID-${Math.floor(Math.random()*10000)}`,
-        name: document.getElementById('add-name').value,
+        name: document.getElementById('add-name').value.toUpperCase(),
         gender: document.getElementById('add-gender').value,
         birthdate: document.getElementById('add-bday').value,
-        parents: document.getElementById('add-parents').value,
-        purok: document.getElementById('add-purok').value,
+        parents: document.getElementById('add-parents').value.toUpperCase(),
+        purok: document.getElementById('add-purok').value.toUpperCase(),
         records: [] 
     };
     childrenData.unshift(newKid); 
@@ -210,12 +194,13 @@ function openProfile(id) {
     document.getElementById('view-parents').innerText = kid.parents;
     document.getElementById('view-purok').innerText = kid.purok;
 
-    document.getElementById('edit-id').value = kid.id;
-    document.getElementById('edit-name').value = kid.name;
+    // Capitalize inputs logic for editing
+    let nameParts = kid.name.split(', ');
+    document.getElementById('edit-name').value = nameParts.length > 1 ? `${nameParts[1]} ${nameParts[0]}` : kid.name; 
     document.getElementById('edit-gender').value = kid.gender;
     document.getElementById('edit-bday').value = kid.birthdate;
     document.getElementById('edit-parents').value = kid.parents;
-    document.getElementById('edit-purok').value = kid.purok;
+    document.getElementById('edit-purok').value = kid.purok.charAt(0).toUpperCase() + kid.purok.slice(1).toLowerCase();
 
     toggleEditMode(false);
     setupAssessmentTab(kid, age);
@@ -235,11 +220,18 @@ function saveChildEdits(e) {
     const id = document.getElementById('edit-id').value;
     const kid = childrenData.find(k => k.id === id);
     
-    kid.name = document.getElementById('edit-name').value;
+    // Simplistic revert back to Surname, First name format if user typed it naturally
+    let rawName = document.getElementById('edit-name').value.toUpperCase();
+    if(!rawName.includes(',')) {
+        let nParts = rawName.split(' ');
+        if(nParts.length > 1) rawName = `${nParts[nParts.length-1]}, ${nParts.slice(0, nParts.length-1).join(' ')}`;
+    }
+
+    kid.name = rawName;
     kid.gender = document.getElementById('edit-gender').value;
     kid.birthdate = document.getElementById('edit-bday').value;
-    kid.parents = document.getElementById('edit-parents').value;
-    kid.purok = document.getElementById('edit-purok').value;
+    kid.parents = document.getElementById('edit-parents').value.toUpperCase();
+    kid.purok = document.getElementById('edit-purok').value.toUpperCase();
     
     openProfile(kid.id); 
     renderMasterlist();
@@ -263,9 +255,9 @@ function setupAssessmentTab(kid, age) {
             <div class="info-box">
                 <p><strong>Weight:</strong> ${latestRecord.weight} kg | <strong>Height:</strong> ${latestRecord.height} cm</p>
                 <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
-                <p><strong>Weight for Age (WFA):</strong> <span style="color:${latestRecord.wfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${latestRecord.wfa}</span></p>
-                <p><strong>Height for Age (HFA):</strong> <span style="color:${latestRecord.hfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${latestRecord.hfa}</span></p>
-                <p><strong>Weight for L/H (WFL/H):</strong> <span style="color:${latestRecord.wflh.includes('Normal')?'#2e7d32':'#d32f2f'}">${latestRecord.wflh}</span></p>
+                <p><strong>Weight for Age (WFA):</strong> <span style="color:${latestRecord.wfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wfa}</span></p>
+                <p><strong>Height for Age (HFA):</strong> <span style="color:${latestRecord.hfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.hfa}</span></p>
+                <p><strong>Weight for L/H (WFL/H):</strong> <span style="color:${latestRecord.wflh==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wflh}</span></p>
                 <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
                 <p><strong>Vitamins Given:</strong> ${vitList}</p>
             </div>
@@ -339,6 +331,7 @@ function submitAssessment(ageMonths) {
     const kid = childrenData.find(k => k.id === currentEditingId);
     kid.records.push({
         month: currentMonthString,
+        dateMeasured: new Date().toISOString().split('T')[0],
         weight: w,
         height: h,
         wfa: computeWFA(w, ageMonths),
@@ -384,9 +377,9 @@ function populateHistoryTab(kid) {
     const recordsToShow = [...kid.records].reverse().slice(0, 5);
     
     tbody.innerHTML = recordsToShow.map(rec => {
-        let colWFA = rec.wfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
-        let colHFA = rec.hfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
-        let colWFLH = rec.wflh.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        let colWFA = rec.wfa === 'N' ? '#2e7d32' : '#d32f2f';
+        let colHFA = rec.hfa === 'N' ? '#2e7d32' : '#d32f2f';
+        let colWFLH = rec.wflh === 'N' ? '#2e7d32' : '#d32f2f';
         
         return `
             <tr>
@@ -400,48 +393,79 @@ function populateHistoryTab(kid) {
     }).join('');
 }
 
-// REPORTS GENERATION
+// REPORTS GENERATION (Table matches Photo)
 function renderReports() {
     const selectedMonth = document.getElementById('reportMonthFilter').value || currentMonthString;
     
     let total = childrenData.length;
     let normal = 0, mal = 0, obese = 0;
-    let issuesListHTML = "";
+    let reportListHTML = "";
 
     childrenData.forEach(kid => {
         const monthRecord = kid.records.find(r => r.month === selectedMonth);
         const age = calculateAgeInMonths(kid.birthdate);
         
+        let w = monthRecord ? monthRecord.weight : "--";
+        let h = monthRecord ? monthRecord.height : "--";
+        let wfa = monthRecord ? monthRecord.wfa : "--";
+        let hfa = monthRecord ? monthRecord.hfa : "--";
+        let wflh = monthRecord ? monthRecord.wflh : "--";
+        let dateMeasured = monthRecord && monthRecord.dateMeasured ? monthRecord.dateMeasured : "--";
+
+        // Calculate Overview KPI Stats
         if (monthRecord) {
-            if (monthRecord.wfa.includes("Normal") && monthRecord.hfa.includes("Normal") && monthRecord.wflh.includes("Normal")) {
+            if (wfa === "N" && hfa === "N" && wflh === "N") {
                 normal++;
             } else {
-                if (monthRecord.wfa.includes("Underweight") || monthRecord.hfa.includes("Stunted") || monthRecord.wflh.includes("Wasted")) mal++;
-                if (monthRecord.wflh.includes("Obese") || monthRecord.wfa.includes("Overweight")) obese++;
-                
-                let issues = [];
-                if(!monthRecord.wfa.includes("Normal")) issues.push(`WFA: ${monthRecord.wfa}`);
-                if(!monthRecord.hfa.includes("Normal")) issues.push(`HFA: ${monthRecord.hfa}`);
-                if(!monthRecord.wflh.includes("Normal")) issues.push(`WFL/H: ${monthRecord.wflh}`);
-
-                issuesListHTML += `
-                    <tr>
-                        <td><strong>${kid.name}</strong></td>
-                        <td>${kid.gender}</td>
-                        <td>${age} mos</td>
-                        <td>${kid.purok}</td>
-                        <td style="color:#d32f2f; font-size: 13px;">${issues.join('<br>')}</td>
-                    </tr>
-                `;
+                if (wfa === "UW" || wfa === "SUW" || hfa === "St" || hfa === "SSt" || wflh === "W" || wflh === "SW") mal++;
+                if (wflh === "Ob" || wflh === "OW" || wfa === "OW") obese++;
             }
         }
+
+        // Date formatter for Table (Example: May-12-2020)
+        const formatBtnDate = (dStr) => {
+            if(!dStr || dStr === "--") return "--";
+            const date = new Date(dStr);
+            const m = date.toLocaleString('default', { month: 'short' });
+            return `${m}-${String(date.getDate()).padStart(2, '0')}-${date.getFullYear()}`;
+        };
+
+        const dobFmt = formatBtnDate(kid.birthdate);
+        const domFmt = formatBtnDate(dateMeasured);
+        const sexFmt = kid.gender === "Male" ? "M" : "F";
+
+        // Assigning correct CSS Classes based on Image
+        const getStatusClass = (status) => {
+            if (status === "N") return "status-n";
+            if (status === "OW" || status === "Ob" || status === "St" || status === "T") return "status-ow"; // Orange Warning
+            if (status === "UW" || status === "SUW" || status === "SSt" || status === "W" || status === "SW") return "status-uw"; // Red Danger
+            return "";
+        };
+
+        reportListHTML += `
+            <tr>
+                <td>${kid.purok}</td>
+                <td>${kid.parents}</td>
+                <td>${kid.name}</td>
+                <td>NO</td>
+                <td>${sexFmt}</td>
+                <td>${dobFmt}</td>
+                <td>${domFmt}</td>
+                <td>${w}</td>
+                <td>${h}</td>
+                <td>${age}</td>
+                <td class="${getStatusClass(wfa)}">${wfa}</td>
+                <td class="${getStatusClass(hfa)}">${hfa}</td>
+                <td class="${getStatusClass(wflh)}">${wflh}</td>
+            </tr>
+        `;
     });
 
     document.getElementById('rep-total').innerText = total;
     document.getElementById('rep-normal').innerText = normal;
     document.getElementById('rep-mal').innerText = mal;
     document.getElementById('rep-obese').innerText = obese;
-    document.getElementById('reports-table-body').innerHTML = issuesListHTML || `<tr><td colspan="5" style="text-align:center;">No health issues recorded for this month.</td></tr>`;
+    document.getElementById('reports-table-body').innerHTML = reportListHTML || `<tr><td colspan="13" style="text-align:center;">No records for this month.</td></tr>`;
 }
 
 function submitReportToAdmin() {
