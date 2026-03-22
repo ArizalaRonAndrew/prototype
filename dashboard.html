@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weigh To Go - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,15 +14,15 @@
         
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h3>Weigh To Go ⚖️</h3>
+                <h3>Weigh To Go <i class="fas fa-balance-scale"></i></h3>
                 <p style="color:#aaa; font-size: 12px; text-align:center;">Balayan, Batangas</p>
             </div>
             <ul id="sidebar-menu">
-                <li class="active" onclick="switchView('trends')">📊 Health Trends</li>
-                <li onclick="switchView('records')">📋 Masterlist</li>
-                <li onclick="switchView('reports')">📈 Health Reports</li>
-                <li onclick="window.location.href='map.html'">🗺️ Barangay Map</li>
-                <li class="logout-item" onclick="location.href='index.html'">🚪 Logout</li>
+                <li class="active" onclick="switchView('trends')"><i class="fas fa-chart-pie"></i> Health Trends</li>
+                <li onclick="switchView('records')"><i class="fas fa-clipboard-list"></i> Masterlist</li>
+                <li onclick="switchView('reports')"><i class="fas fa-chart-line"></i> Health Reports</li>
+                <li onclick="window.location.href='map.html'"><i class="fas fa-map"></i> Barangay Map</li>
+                <li class="logout-item" onclick="location.href='index.html'"><i class="fas fa-sign-out-alt"></i> Logout</li>
             </ul>
         </nav>
 
@@ -53,21 +54,21 @@
 
                 <section class="stats-cards">
                     <div class="card normal">
-                        <div class="card-icon">💚</div>
+                        <div class="card-icon"><i class="fas fa-heart" style="color:#2e7d32"></i></div>
                         <div>
                             <h4>Filtered Normal</h4>
                             <p id="statNormal" class="stat-num">0</p>
                         </div>
                     </div>
                     <div class="card mal">
-                        <div class="card-icon">⚠️</div>
+                        <div class="card-icon"><i class="fas fa-exclamation-triangle" style="color:#d32f2f"></i></div>
                         <div>
                             <h4>Filtered Malnourished</h4>
                             <p id="statMal" class="stat-num">0</p>
                         </div>
                     </div>
                     <div class="card obese">
-                        <div class="card-icon">🍔</div>
+                        <div class="card-icon"><i class="fas fa-hamburger" style="color:#f9a825"></i></div>
                         <div>
                             <h4>Filtered Obese</h4>
                             <p id="statObese" class="stat-num">0</p>
@@ -123,7 +124,7 @@
 
                 <section class="stats-cards">
                     <div class="card missed-kpi">
-                        <div class="card-icon">💊</div>
+                        <div class="card-icon"><i class="fas fa-pills" style="color:#c62828"></i></div>
                         <div>
                             <h4>Missed Vitamins (Based on Filters)</h4>
                             <p id="statMissedRecords" class="stat-num">0</p>

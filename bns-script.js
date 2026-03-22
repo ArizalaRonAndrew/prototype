@@ -108,8 +108,8 @@ function renderMasterlist() {
         const isCheckedThisMonth = latestRecord && latestRecord.month === currentMonthString;
         
         let checkupBadge = isCheckedThisMonth 
-            ? `<span class="badge complete">🟢 Checked</span>` 
-            : `<span class="badge pending">🔴 Pending</span>`;
+            ? `<span class="badge complete"><i class="fas fa-check-circle"></i> Checked</span>` 
+            : `<span class="badge pending"><i class="fas fa-times-circle"></i> Pending</span>`;
             
         let statusDisplay = latestRecord ? latestRecord.status : "No Data";
         let statusColor = statusDisplay === "Normal" ? "#2e7d32" : (statusDisplay === "Obese" ? "#fbc02d" : (statusDisplay === "No Data" ? "#666" : "#d32f2f"));
@@ -165,7 +165,7 @@ function openProfile(id) {
     
     // Set text contents
     document.getElementById('prof-name').innerText = kid.name;
-    document.getElementById('prof-subtitle').innerText = `📍 ${kid.purok} | Age: ${age} mos`;
+    document.getElementById('prof-subtitle').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${kid.purok} | Age: ${age} mos`;
     document.getElementById('view-name').innerText = kid.name;
     document.getElementById('view-bday').innerText = kid.birthdate;
     document.getElementById('view-parents').innerText = kid.parents;
@@ -222,7 +222,7 @@ function setupAssessmentTab(kid, age) {
 
     if (isCheckedThisMonth) {
         banner.className = "status-banner success";
-        banner.innerHTML = `✅ <b>Assessment Completed!</b><br>You have already recorded the data for ${currentMonthName}.`;
+        banner.innerHTML = `<i class="fas fa-check-circle"></i> <b>Assessment Completed!</b><br>You have already recorded the data for ${currentMonthName}.`;
         
         let vitList = latestRecord.vitamins && latestRecord.vitamins.length > 0 
             ? latestRecord.vitamins.join(", ") : "None Recorded";
@@ -238,7 +238,7 @@ function setupAssessmentTab(kid, age) {
         `;
     } else {
         banner.className = "status-banner warning";
-        banner.innerHTML = `⚠️ <b>Pending Checkup</b><br>Please enter the height, weight, and vitamin intake for ${currentMonthName}.`;
+        banner.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <b>Pending Checkup</b><br>Please enter the height, weight, and vitamin intake for ${currentMonthName}.`;
         
         formContainer.innerHTML = `
             <h3 style="margin-bottom: 15px;">New Checkup (<span id="current-month-label">${currentMonthName}</span>)</h3>

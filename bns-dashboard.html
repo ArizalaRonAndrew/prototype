@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BNS Portal - Weigh To Go</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="bns-style.css">
 </head>
 <body class="dashboard-body">
@@ -12,14 +13,14 @@
         
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h3>Weigh To Go ⚖️</h3>
+                <h3>Weigh To Go <i class="fas fa-balance-scale"></i></h3>
                 <p style="color:#aaa; font-size: 12px; text-align:center;">BNS Portal</p>
                 <h4 id="sidebar-brgy-name" style="text-align:center; margin-top:10px; color:#4caf50;">Brgy. Caloocan</h4>
             </div>
             <ul id="sidebar-menu">
-                <li class="active" onclick="switchBNSView('masterlist')">📋 Kids Masterlist</li>
-                <li onclick="switchBNSView('reports')">📊 Monthly Report</li>
-                <li class="logout-item" onclick="alert('Logging out...')">🚪 Logout</li>
+                <li class="active" onclick="switchBNSView('masterlist')"><i class="fas fa-clipboard-list"></i> Kids Masterlist</li>
+                <li onclick="switchBNSView('reports')"><i class="fas fa-chart-bar"></i> Monthly Report</li>
+                <li class="logout-item" onclick="alert('Logging out...')"><i class="fas fa-sign-out-alt"></i> Logout</li>
             </ul>
         </nav>
 
@@ -32,7 +33,7 @@
                         <p>Manage and track children from 0-59 months old.</p>
                     </div>
                     <div class="filters-container" style="flex-wrap: wrap;">
-                        <input type="text" id="searchChild" placeholder="🔍 Search child name..." oninput="renderMasterlist()" style="width: 200px;">
+                        <input type="text" id="searchChild" placeholder="&#xf002; Search child name..." style="font-family: 'Poppins', 'Font Awesome 5 Free'; font-weight: 900; width: 200px;" oninput="renderMasterlist()">
                         <select id="filterPurok" onchange="renderMasterlist()">
                             <option value="all">All Purok / Sitio</option>
                             <option value="Purok 1">Purok 1</option>
@@ -41,12 +42,12 @@
                             <option value="Purok 4">Purok 4</option>
                             <option value="Purok 5">Purok 5</option>
                         </select>
-                        <select id="filterStatus" onchange="renderMasterlist()">
+                        <select id="filterStatus" onchange="renderMasterlist()" style="font-family: 'Poppins', 'Font Awesome 5 Free'; font-weight: 900;">
                             <option value="all">All Checkup Status</option>
-                            <option value="checked">🟢 Checked This Month</option>
-                            <option value="pending">🔴 Pending This Month</option>
+                            <option value="checked">&#xf058; Checked This Month</option>
+                            <option value="pending">&#xf057; Pending This Month</option>
                         </select>
-                        <button class="add-btn" onclick="openAddChildModal()">+ Add New Child</button>
+                        <button class="add-btn" onclick="openAddChildModal()"><i class="fas fa-plus"></i> Add New Child</button>
                     </div>
                 </header>
 
@@ -75,35 +76,35 @@
                     </div>
                     <div class="filters-container">
                         <input type="month" id="reportMonthFilter" onchange="renderReports()">
-                        <button class="add-btn" style="background:#2196f3;" onclick="window.print()">🖨️ Print Report</button>
-                        <button class="add-btn" style="background:#e65100;" onclick="submitReportToAdmin()">📤 Submit to Admin</button>
+                        <button class="add-btn" style="background:#2196f3;" onclick="window.print()"><i class="fas fa-print"></i> Print Report</button>
+                        <button class="add-btn" style="background:#e65100;" onclick="submitReportToAdmin()"><i class="fas fa-file-export"></i> Submit to Admin</button>
                     </div>
                 </header>
 
                 <section class="stats-cards">
                     <div class="card normal">
-                        <div class="card-icon">👶</div>
+                        <div class="card-icon"><i class="fas fa-baby"></i></div>
                         <div>
                             <h4>Total Registered</h4>
                             <p id="rep-total" class="stat-num">0</p>
                         </div>
                     </div>
                     <div class="card normal">
-                        <div class="card-icon">✅</div>
+                        <div class="card-icon"><i class="fas fa-check-circle" style="color:#2e7d32"></i></div>
                         <div>
                             <h4>Normal Status</h4>
                             <p id="rep-normal" class="stat-num">0</p>
                         </div>
                     </div>
                     <div class="card mal">
-                        <div class="card-icon">⚠️</div>
+                        <div class="card-icon"><i class="fas fa-exclamation-triangle" style="color:#d32f2f"></i></div>
                         <div>
                             <h4>Malnourished / Stunted</h4>
                             <p id="rep-mal" class="stat-num">0</p>
                         </div>
                     </div>
                     <div class="card obese">
-                        <div class="card-icon">🍔</div>
+                        <div class="card-icon"><i class="fas fa-hamburger" style="color:#f9a825"></i></div>
                         <div>
                             <h4>Obese</h4>
                             <p id="rep-obese" class="stat-num">0</p>
@@ -170,10 +171,10 @@
             <span class="close-btn" onclick="closeModal('childProfileModal')">&times;</span>
             
             <div class="profile-header" style="margin-bottom: 10px;">
-                <div class="profile-avatar">👶</div>
+                <div class="profile-avatar"><i class="fas fa-baby"></i></div>
                 <div class="profile-title">
                     <h2 id="prof-name">Name</h2>
-                    <p id="prof-subtitle">📍 Purok</p>
+                    <p id="prof-subtitle"><i class="fas fa-map-marker-alt"></i> Purok</p>
                 </div>
             </div>
 
@@ -191,7 +192,7 @@
                         <div class="info-box"><span class="info-label">Parents</span><span id="view-parents" class="info-value"></span></div>
                         <div class="info-box"><span class="info-label">Purok</span><span id="view-purok" class="info-value"></span></div>
                     </div>
-                    <button class="view-btn" style="margin-top: 10px;" onclick="toggleEditMode(true)">✏️ Edit Profile</button>
+                    <button class="view-btn" style="margin-top: 10px;" onclick="toggleEditMode(true)"><i class="fas fa-edit"></i> Edit Profile</button>
                 </div>
 
                 <form id="info-edit-mode" onsubmit="saveChildEdits(event)" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px dashed #ccc;">

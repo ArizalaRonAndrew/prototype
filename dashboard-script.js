@@ -202,7 +202,7 @@ function updateRecords() {
       let vitaminDisplay = "";
 
       if (k.vitaminTaken) {
-        vitaminDisplay = `<span class="badge complete">✓ Complete</span>`;
+        vitaminDisplay = `<span class="badge complete"><i class="fas fa-check"></i> Complete</span>`;
       } else {
         // Generate X marks for each required vitamin
         const requiredVits = getVitaminsByAge(k.age);
@@ -210,7 +210,7 @@ function updateRecords() {
           .map(
             (v) =>
               `<div style="color: #c62828; font-size: 11px; margin-bottom: 2px;">
-                    <b style="color:red">✘</b> ${v}
+                    <b style="color:red"><i class="fas fa-times"></i></b> ${v}
                 </div>`,
           )
           .join("");
@@ -238,7 +238,7 @@ function openProfile(brgy, id) {
 
   modalData.innerHTML = `
         <div class="modal-profile-header">
-            <div style="font-size:50px">👶</div>
+            <div style="font-size:50px"><i class="fas fa-baby"></i></div>
             <h2>${kid.name}</h2>
             <p>${kid.brgy} | ${kid.sitio}</p>
         </div>
@@ -250,7 +250,7 @@ function openProfile(brgy, id) {
                 <h4>Monthly Vitamin Tracking</h4>
                 <p>Overall Status: <b style="color:${kid.vitaminTaken ? "green" : "red"}">${kid.vitaminTaken ? "TAKEN" : "MISSED"}</b></p>
                 <ul style="margin-top:8px; font-size:13px; list-style:none;">
-                    ${vits.map((v) => `<li>${kid.vitaminTaken ? "✅" : "❌"} ${v}</li>`).join("")}
+                    ${vits.map((v) => `<li><i class="fas ${kid.vitaminTaken ? 'fa-check' : 'fa-times'}" style="color:${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}"></i> ${v}</li>`).join("")}
                 </ul>
             </div>
         </div>

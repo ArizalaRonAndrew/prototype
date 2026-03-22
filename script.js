@@ -161,16 +161,16 @@ function openInfoPanel(brgy, normal, mal, obese, badCases, colorCode, totalKids)
 
     content.innerHTML = `
         <h2 style="color: #1b5e20; margin-bottom: 5px;">Brgy. ${brgy}</h2>
-        <p style="color: #666; font-size: 13px; margin-bottom: 20px;">📍 Balayan, Batangas</p>
+        <p style="color: #666; font-size: 13px; margin-bottom: 20px;"><i class="fas fa-map-marker-alt"></i> Balayan, Batangas</p>
         <div class="total-highlight">
             <h3>${totalKids}</h3>
             <span>Total Registered Children</span>
         </div>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
             <h3 style="margin-bottom: 15px; font-size: 14px; color: #333;">Health Status Breakdown</h3>
-            <div class="stat-row"><span>🟢 Normal:</span> <strong style="color: #2e7d32">${normal}</strong></div>
-            <div class="stat-row"><span>🔴 Malnourished:</span> <strong style="color: #d32f2f">${mal}</strong></div>
-            <div class="stat-row"><span>🟡 Obese:</span> <strong style="color: #fbc02d">${obese}</strong></div>
+            <div class="stat-row"><span><i class="fas fa-circle" style="color:#2e7d32"></i> Normal:</span> <strong style="color: #2e7d32">${normal}</strong></div>
+            <div class="stat-row"><span><i class="fas fa-circle" style="color:#d32f2f"></i> Malnourished:</span> <strong style="color: #d32f2f">${mal}</strong></div>
+            <div class="stat-row"><span><i class="fas fa-circle" style="color:#fbc02d"></i> Obese:</span> <strong style="color: #fbc02d">${obese}</strong></div>
             <div class="stat-row" style="border:none; padding-top: 10px; margin-bottom: 0;">
                 <span><strong>Total Health Cases:</strong></span> <strong>${badCases}</strong>
             </div>
@@ -323,10 +323,10 @@ function updateRecords() {
     document.getElementById('records-table-body').innerHTML = filteredList.slice(0, 100).map(k => {
         let vitaminDisplay = "";
         if (k.vitaminTaken) {
-            vitaminDisplay = `<span class="badge complete">✓ Complete</span>`;
+            vitaminDisplay = `<span class="badge complete"><i class="fas fa-check"></i> Complete</span>`;
         } else {
             const requiredVits = getVitaminsByAge(k.age);
-            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 12px; margin-bottom: 3px;"><b>✘</b> ${v}</div>`).join('');
+            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 12px; margin-bottom: 3px;"><b><i class="fas fa-times"></i></b> ${v}</div>`).join('');
         }
 
         return `
@@ -396,13 +396,13 @@ function openProfile(brgy, id) {
     let historyHTML = "";
     const pastMonthsNames = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
     kid.history.forEach((took, i) => {
-        historyHTML += `<div class="month-box ${took ? 'green' : 'red'}">${pastMonthsNames[i]}<br>${took ? '✓' : '✘'}</div>`;
+        historyHTML += `<div class="month-box ${took ? 'green' : 'red'}">${pastMonthsNames[i]}<br><i class="fas ${took ? 'fa-check' : 'fa-times'}"></i></div>`;
     });
 
     document.getElementById('modal-data').innerHTML = `
         <div class="profile-header">
-            <div class="profile-avatar">👶</div>
-            <div class="profile-title"><h2>${kid.name}</h2><p>📍 Brgy. ${kid.brgy}, ${kid.sitio}</p></div>
+            <div class="profile-avatar"><i class="fas fa-baby"></i></div>
+            <div class="profile-title"><h2>${kid.name}</h2><p><i class="fas fa-map-marker-alt"></i> Brgy. ${kid.brgy}, ${kid.sitio}</p></div>
         </div>
         <div class="profile-grid">
             <div>
@@ -414,7 +414,7 @@ function openProfile(brgy, id) {
                 <div class="vitamin-card" style="border-left: 4px solid ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}">
                     <h4>Current Month Vitamins</h4>
                     <ul class="vit-list">
-                        ${vits.map(v => `<li><span style="color: ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}">${kid.vitaminTaken ? '✅' : '❌'}</span> ${v}</li>`).join('')}
+                        ${vits.map(v => `<li><span style="color: ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}"><i class="fas ${kid.vitaminTaken ? 'fa-check' : 'fa-times'}"></i></span> ${v}</li>`).join('')}
                     </ul>
                 </div>
                 <div class="history-tracker">
