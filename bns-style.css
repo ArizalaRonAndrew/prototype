@@ -17,10 +17,15 @@ body.dashboard-body {
 .dashboard-wrapper {
     display: flex;
     height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Prevents whole page from shifting */
 }
 
 .sidebar {
     width: 260px;
+    min-width: 260px; /* CRITICAL: Locks the size */
+    max-width: 260px; /* CRITICAL: Locks the size */
+    flex-shrink: 0;   /* CRITICAL: Prevents tables from squishing the sidebar */
     background-color: #1b5e20;
     color: #fff;
     display: flex;
@@ -75,8 +80,10 @@ body.dashboard-body {
 /* Main Content Styles */
 .main-content {
     flex-grow: 1;
+    width: calc(100% - 260px); /* Strictly fills remaining space */
     padding: 30px 40px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .dashboard-header {
@@ -343,12 +350,12 @@ body.dashboard-body {
     padding: 12px 10px;
     border-bottom: 2px solid #cbd5e1;
     text-align: center;
-    vertical-align: bottom; /* Aligns text neatly at the bottom */
+    vertical-align: bottom;
     font-weight: 600;
-    font-size: 12px; /* Increased font size */
-    line-height: 1.4; /* Adds breathing room between stacked words */
+    font-size: 12px;
+    line-height: 1.4;
     border-right: 1px solid #f1f5f9;
-    white-space: normal; /* CRITICAL: Allows the long headers to wrap text */
+    white-space: normal;
 }
 
 .report-table td {
@@ -359,16 +366,16 @@ body.dashboard-body {
     font-size: 12px;
     color: #334155;
     border-right: 1px solid #f1f5f9;
-    white-space: nowrap; /* Keeps the actual data clean and straight */
+    white-space: nowrap;
 }
 
 .report-table td:nth-child(1),
 .report-table td:nth-child(2),
 .report-table td:nth-child(3) {
-    text-align: left; /* Align addresses and names to the left */
+    text-align: left;
 }
 
-/* Badge System for Nutritional Status Color Coding */
+/* Badge System */
 .badge-status {
     padding: 4px 10px;
     border-radius: 20px;
@@ -378,27 +385,7 @@ body.dashboard-body {
     text-align: center;
     min-width: 60px;
 }
-
-.badge-normal {
-    background-color: #dcfce7;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-}
-
-.badge-warning {
-    background-color: #fef9c3;
-    color: #854d0e;
-    border: 1px solid #fef08a;
-}
-
-.badge-danger {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-}
-
-.badge-pending {
-    background-color: #f1f5f9;
-    color: #64748b;
-    border: 1px dashed #cbd5e1;
-}
+.badge-normal { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.badge-warning { background-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+.badge-danger { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.badge-pending { background-color: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }

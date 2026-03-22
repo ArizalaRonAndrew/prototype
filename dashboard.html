@@ -6,7 +6,11 @@
     <title>Weigh To Go - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="dashboard-body">
@@ -21,7 +25,9 @@
                 <li class="active" onclick="switchView('trends')"><i class="fas fa-chart-pie"></i> Health Trends</li>
                 <li onclick="switchView('records')"><i class="fas fa-clipboard-list"></i> Masterlist</li>
                 <li onclick="switchView('reports')"><i class="fas fa-chart-line"></i> Health Reports</li>
-                <li onclick="window.location.href='map.html'"><i class="fas fa-map"></i> Barangay Map</li>
+                
+                <li onclick="switchView('map')"><i class="fas fa-map"></i> Barangay Map</li>
+                
                 <li class="logout-item" onclick="location.href='index.html'"><i class="fas fa-sign-out-alt"></i> Logout</li>
             </ul>
         </nav>
@@ -179,6 +185,17 @@
                 </section>
             </div>
             
+            <div id="map-view" class="view" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e5e5e5; z-index: 5;">
+                <div id="full-city-map" style="width: 100%; height: 100%; z-index: 1;"></div>
+                <div id="brgy-info-panel" class="info-panel" style="z-index: 10;">
+                    <button class="close-panel-btn" onclick="closeInfoPanel()">×</button>
+                    <div id="panel-content">
+                        <h2 style="color: #888;">Select a Barangay</h2>
+                        <p>Click on any marker on the map to view the total number of children, health breakdown, and recommended actions.</p>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 

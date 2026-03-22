@@ -109,30 +109,28 @@ function filterDataList(list, ageRange, status, vitStatus) {
     return filtered;
 }
 
-// VIEW SWITCHING 
+// VIEW SWITCHING - NOW HANDLES THE MAP SEAMLESSLY
 function switchView(viewName) {
-    if(document.getElementById('trends-view')) {
-        document.getElementById('trends-view').style.display = viewName === 'trends' ? 'block' : 'none';
-        document.getElementById('records-view').style.display = viewName === 'records' ? 'block' : 'none';
-        
-        if (document.getElementById('reports-view')) {
-            document.getElementById('reports-view').style.display = viewName === 'reports' ? 'block' : 'none';
-        }
-        
-        const menuItems = document.querySelectorAll('#sidebar-menu li');
-        menuItems.forEach(item => item.classList.remove('active'));
-        
-        if(viewName === 'trends') {
-            menuItems[0].classList.add('active');
-            updateTrends();
-        }
-        if(viewName === 'records') {
-            menuItems[1].classList.add('active');
-            updateRecords();
-        }
-        if(viewName === 'reports') {
-            menuItems[2].classList.add('active');
-            updateReportsView();
+    // Hide all views explicitly
+    document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+    
+    // Show the requested view
+    if (document.getElementById(viewName + '-view')) {
+        document.getElementById(viewName + '-view').style.display = 'block';
+    }
+    
+    // Update Sidebar Active State
+    const menuItems = document.querySelectorAll('#sidebar-menu li');
+    menuItems.forEach(item => item.classList.remove('active'));
+    
+    if(viewName === 'trends') { menuItems[0].classList.add('active'); updateTrends(); }
+    if(viewName === 'records') { menuItems[1].classList.add('active'); updateRecords(); }
+    if(viewName === 'reports') { menuItems[2].classList.add('active'); updateReportsView(); }
+    if(viewName === 'map') { 
+        menuItems[3].classList.add('active'); 
+        // Leaflet maps break if loaded inside a display:none container. This forces it to refresh the tiles.
+        if (fullMap) {
+            setTimeout(() => { fullMap.invalidateSize(); }, 200);
         }
     }
 }
