@@ -1,5 +1,6 @@
 // Initialization Constants
 const currentBrgy = "Brgy. Caloocan";
+const puroks = ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"];
 let childrenData = [];
 let currentEditingId = null;
 
@@ -83,16 +84,22 @@ function generateMockData() {
         else if (conditions[i] === "W") { w = expectedW - 2.5; h = expectedH + 2.0; }
 
         let historyRecords = [];
-        historyRecords.push({
-            month: currentMonthString,
-            dateMeasured: currentMonthString + "-15", // Mock a measurement date in the middle of the month
-            weight: w.toFixed(1),
-            height: h.toFixed(1),
-            wfa: computeWFA(w, ageMonths),
-            hfa: computeHFA(h, ageMonths),
-            wflh: computeWFLH(w, h),
-            vitamins: ["Vitamin A"]
-        });
+        
+        // Make the last 3 children "Pending" for the current month
+        let isPendingThisMonth = i >= 12; // Children 12, 13, and 14 will NOT have a record for current month
+
+        if (!isPendingThisMonth) {
+            historyRecords.push({
+                month: currentMonthString,
+                dateMeasured: currentMonthString + "-15",
+                weight: w.toFixed(1),
+                height: h.toFixed(1),
+                wfa: computeWFA(w, ageMonths),
+                hfa: computeHFA(h, ageMonths),
+                wflh: computeWFLH(w, h),
+                vitamins: ["Vitamin A"]
+            });
+        }
 
         childrenData.push({
             id: `KID-${Math.floor(Math.random()*10000)}`,
@@ -220,7 +227,6 @@ function saveChildEdits(e) {
     const id = document.getElementById('edit-id').value;
     const kid = childrenData.find(k => k.id === id);
     
-    // Simplistic revert back to Surname, First name format if user typed it naturally
     let rawName = document.getElementById('edit-name').value.toUpperCase();
     if(!rawName.includes(',')) {
         let nParts = rawName.split(' ');
@@ -393,7 +399,14 @@ function populateHistoryTab(kid) {
     }).join('');
 }
 
-// REPORTS GENERATION (Table matches Photo)
+// REPORTS GENERATION (Clean Report logic)
+function getStatusBadge(status) {
+    if (status === "N") return `<span class="badge-status badge-normal">N</span>`;
+    if (["OW", "Ob", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
+    if (["UW", "SUW", "St", "SSt", "W", "SW"].includes(status)) return `<span class="badge-status badge-danger">${status}</span>`;
+    return `<span class="badge-status badge-pending">Pending</span>`;
+}
+
 function renderReports() {
     const selectedMonth = document.getElementById('reportMonthFilter').value || currentMonthString;
     
@@ -407,12 +420,11 @@ function renderReports() {
         
         let w = monthRecord ? monthRecord.weight : "--";
         let h = monthRecord ? monthRecord.height : "--";
-        let wfa = monthRecord ? monthRecord.wfa : "--";
-        let hfa = monthRecord ? monthRecord.hfa : "--";
-        let wflh = monthRecord ? monthRecord.wflh : "--";
+        let wfa = monthRecord ? monthRecord.wfa : "Pending";
+        let hfa = monthRecord ? monthRecord.hfa : "Pending";
+        let wflh = monthRecord ? monthRecord.wflh : "Pending";
         let dateMeasured = monthRecord && monthRecord.dateMeasured ? monthRecord.dateMeasured : "--";
 
-        // Calculate Overview KPI Stats
         if (monthRecord) {
             if (wfa === "N" && hfa === "N" && wflh === "N") {
                 normal++;
@@ -422,7 +434,6 @@ function renderReports() {
             }
         }
 
-        // Date formatter for Table (Example: May-12-2020)
         const formatBtnDate = (dStr) => {
             if(!dStr || dStr === "--") return "--";
             const date = new Date(dStr);
@@ -434,29 +445,21 @@ function renderReports() {
         const domFmt = formatBtnDate(dateMeasured);
         const sexFmt = kid.gender === "Male" ? "M" : "F";
 
-        // Assigning correct CSS Classes based on Image
-        const getStatusClass = (status) => {
-            if (status === "N") return "status-n";
-            if (status === "OW" || status === "Ob" || status === "St" || status === "T") return "status-ow"; // Orange Warning
-            if (status === "UW" || status === "SUW" || status === "SSt" || status === "W" || status === "SW") return "status-uw"; // Red Danger
-            return "";
-        };
-
         reportListHTML += `
             <tr>
                 <td>${kid.purok}</td>
                 <td>${kid.parents}</td>
-                <td>${kid.name}</td>
+                <td><strong>${kid.name}</strong></td>
                 <td>NO</td>
                 <td>${sexFmt}</td>
                 <td>${dobFmt}</td>
                 <td>${domFmt}</td>
-                <td>${w}</td>
-                <td>${h}</td>
+                <td><strong>${w}</strong></td>
+                <td><strong>${h}</strong></td>
                 <td>${age}</td>
-                <td class="${getStatusClass(wfa)}">${wfa}</td>
-                <td class="${getStatusClass(hfa)}">${hfa}</td>
-                <td class="${getStatusClass(wflh)}">${wflh}</td>
+                <td>${getStatusBadge(wfa)}</td>
+                <td>${getStatusBadge(hfa)}</td>
+                <td>${getStatusBadge(wflh)}</td>
             </tr>
         `;
     });

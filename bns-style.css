@@ -83,3 +83,99 @@ select:focus, input:focus { border-color: #2e7d32; }
 .vit-label-container { display: flex; align-items: center; gap: 8px; background: #f0f4f1; padding: 6px 12px; border-radius: 6px; border: 1px solid #ddd; }
 .remove-vit-btn { background: none; border: none; color: #d32f2f; font-size: 20px; line-height: 1; cursor: pointer; font-weight: bold; padding: 0 4px; border-radius: 50%; transition: 0.2s;}
 .remove-vit-btn:hover { background: #ffebee; }
+
+/* --- NEW REPORT TABLE STYLES --- */
+.report-table-wrapper { overflow-x: auto; margin-top: 15px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+.report-table { width: 100%; border-collapse: collapse; font-size: 11px; white-space: nowrap; font-family: Arial, sans-serif; }
+.report-table th, .report-table td { border: 1px solid #555; padding: 6px 8px; text-align: center; vertical-align: middle;}
+.report-table th { color: white; font-weight: normal; }
+.report-table td { background-color: #fff; color: #000; }
+.report-table td:nth-child(1), .report-table td:nth-child(2), .report-table td:nth-child(3) { text-align: left; }
+
+/* Status Color Mappings Based on Photo */
+.status-n { background-color: #4caf50 !important; color: black !important; font-weight: bold; }
+.status-ow { background-color: #ff9800 !important; color: black !important; font-weight: bold; }
+.status-uw { background-color: #f44336 !important; color: white !important; font-weight: bold; }
+
+/* --- CLEAN REPORT TABLE STYLES & COLOR CODING --- */
+.report-table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background: white;
+    margin-top: 15px;
+    border: 1px solid #e2e8f0;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    white-space: nowrap;
+    font-family: 'Poppins', sans-serif;
+}
+
+.report-table thead {
+    background-color: #f8fafc;
+    color: #475569;
+}
+
+.report-table th, .report-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.report-table th {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    border-right: 1px solid #f1f5f9;
+}
+
+.report-table td {
+    color: #334155;
+    border-right: 1px solid #f1f5f9;
+}
+
+.report-table td:nth-child(1),
+.report-table td:nth-child(2),
+.report-table td:nth-child(3) {
+    text-align: left; /* Align addresses and names to the left */
+}
+
+/* Badge System for Nutritional Status Color Coding */
+.badge-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 11px;
+    display: inline-block;
+    text-align: center;
+    min-width: 60px;
+}
+
+.badge-normal {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-warning {
+    background-color: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fef08a;
+}
+
+.badge-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.badge-pending {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+}
