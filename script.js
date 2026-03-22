@@ -13,40 +13,52 @@ const firstNames = ["Juan", "Maria", "Jose", "Luz", "Pedro", "Ana", "Miguel", "R
 const lastNames = ["Santos", "Reyes", "Cruz", "Bautista", "Ocampo", "Garcia", "Mendoza", "Torres", "Aquino", "Ramos", "Villanueva", "Mercado"];
 
 function getRandomName() {
-    return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+    return `${lastNames[Math.floor(Math.random() * lastNames.length)]}, ${firstNames[Math.floor(Math.random() * firstNames.length)]}`.toUpperCase();
 }
 
-// NUTRITION CALCULATION
+// NUTRITION CALCULATION - Aligned with BNS Side tags
 function computeWFA(weight, ageMonths) {
     let expectedW = ageMonths * 0.2 + 3.5; 
-    if (weight < expectedW - 3) return "Severely Underweight (suw)";
-    if (weight < expectedW - 1.5) return "Underweight (uw)";
-    if (weight > expectedW + 3) return "Overweight (ow)";
-    return "Normal (n)";
+    if (weight < expectedW - 3) return "SUW";
+    if (weight < expectedW - 1.5) return "UW";
+    if (weight > expectedW + 3) return "OW";
+    return "N";
 }
 
 function computeHFA(height, ageMonths) {
     let expectedH = ageMonths * 1.5 + 48;
-    if (height < expectedH - 6) return "Severely Stunted (sst)";
-    if (height < expectedH - 3) return "Stunted (st)";
-    if (height > expectedH + 5) return "Tall (t)";
-    return "Normal (n)";
+    if (height < expectedH - 6) return "SSt";
+    if (height < expectedH - 3) return "St";
+    if (height > expectedH + 5) return "T";
+    return "N";
 }
 
 function computeWFLH(weight, height) {
     let hM = height / 100;
     let bmi = weight / (hM * hM);
-    if (bmi < 12.0) return "Severely Wasted (sw)";
-    if (bmi < 13.5) return "Wasted (w)";
-    if (bmi > 18.5) return "Obese (ob)";
-    if (bmi > 17.0) return "Overweight (ow)";
-    return "Normal (n)";
+    if (bmi < 12.0) return "SW";
+    if (bmi < 13.5) return "W";
+    if (bmi > 18.5) return "Ob";
+    if (bmi > 17.0) return "OW";
+    return "N";
 }
 
 function getVitaminsByAge(age) {
     if (age <= 6) return ["Vit A (100k IU)", "Newborn Screening"];
     if (age <= 23) return ["Vit A (200k IU)", "Iron Drops", "Deworming"];
     return ["Vit A (High Dose)", "Deworming", "Zinc Supplement"];
+}
+
+function getStatusBadge(status) {
+    if (status === "N") return `<span class="badge-status badge-normal">N</span>`;
+    if (["OW", "Ob", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
+    if (["UW", "SUW", "St", "SSt", "W", "SW"].includes(status)) return `<span class="badge-status badge-danger">${status}</span>`;
+    return `<span class="badge-status badge-pending">Pending</span>`;
+}
+
+function getFullStatusName(code) {
+    const map = { "N":"Normal", "UW":"Underweight", "SUW":"Severely Underweight", "OW":"Overweight", "Ob":"Obese", "St":"Stunted", "SSt":"Severely Stunted", "T":"Tall", "W":"Wasted", "SW":"Severely Wasted" };
+    return map[code] || "Pending";
 }
 
 // Generate Master Data
@@ -65,6 +77,15 @@ balayanBrgys.forEach((brgy, index) => {
         for(let m=0; m<6; m++) { history.push(Math.random() > 0.2); } 
 
         let age = Math.floor(Math.random() * 60) + 1; 
+        
+        let bDate = new Date();
+        bDate.setMonth(bDate.getMonth() - age);
+        let birthdate = bDate.toISOString().split('T')[0];
+
+        let dDate = new Date();
+        dDate.setDate(Math.floor(Math.random() * 28) + 1);
+        let dateMeasured = dDate.toISOString().split('T')[0];
+
         let weight = (Math.random() * 10 + 5).toFixed(1);
         let height = (Math.random() * 40 + 50).toFixed(1);
         
@@ -73,22 +94,24 @@ balayanBrgys.forEach((brgy, index) => {
         let wflh = computeWFLH(weight, height);
 
         let overall = "Normal";
-        if (wfa.includes("Underweight") || hfa.includes("Stunted") || wflh.includes("Wasted")) overall = "Malnourished";
-        if (wfa.includes("Overweight") || wflh.includes("Obese")) overall = "Obese";
+        if (wfa === "UW" || wfa === "SUW" || hfa === "St" || hfa === "SSt" || wflh === "W" || wflh === "SW") overall = "Malnourished";
+        if (wfa === "OW" || wflh === "OW" || wflh === "Ob") overall = "Obese";
 
         masterData[brgy].push({
             id: `B${index}-K${k}`,
             name: getRandomName(),
             gender: Math.random() > 0.5 ? "Male" : "Female",
-            parents: `${getRandomName()} & ${getRandomName()}`,
+            parents: getRandomName(),
             age: age, 
+            birthdate: birthdate,
+            dateMeasured: dateMeasured,
             weight: weight,
             height: height,
             wfa: wfa,
             hfa: hfa,
             wflh: wflh,
             overallStatus: overall,
-            sitio: "Purok " + Math.ceil(Math.random() * 5),
+            sitio: "PUROK " + Math.ceil(Math.random() * 5),
             brgy: brgy,
             vitaminTaken: Math.random() > 0.3,
             history: history 
@@ -109,17 +132,13 @@ function filterDataList(list, ageRange, status, vitStatus) {
     return filtered;
 }
 
-// VIEW SWITCHING - NOW HANDLES THE MAP SEAMLESSLY
+// VIEW SWITCHING
 function switchView(viewName) {
-    // Hide all views explicitly
     document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-    
-    // Show the requested view
     if (document.getElementById(viewName + '-view')) {
         document.getElementById(viewName + '-view').style.display = 'block';
     }
     
-    // Update Sidebar Active State
     const menuItems = document.querySelectorAll('#sidebar-menu li');
     menuItems.forEach(item => item.classList.remove('active'));
     
@@ -128,10 +147,7 @@ function switchView(viewName) {
     if(viewName === 'reports') { menuItems[2].classList.add('active'); updateReportsView(); }
     if(viewName === 'map') { 
         menuItems[3].classList.add('active'); 
-        // Leaflet maps break if loaded inside a display:none container. This forces it to refresh the tiles.
-        if (fullMap) {
-            setTimeout(() => { fullMap.invalidateSize(); }, 200);
-        }
+        if (fullMap) { setTimeout(() => { fullMap.invalidateSize(); }, 200); }
     }
 }
 
@@ -325,33 +341,48 @@ function updateRecords() {
     let baseList = brgy === 'all' ? Object.values(masterData).flat() : masterData[brgy];
     let filteredList = filterDataList(baseList, ageRange, status, vitStatus);
 
+    const totalReg = filteredList.length;
     const missedTotal = filteredList.filter(k => !k.vitaminTaken).length;
-    document.getElementById('statMissedRecords').innerText = missedTotal;
+
+    // UPDATE KPIs
+    if(document.getElementById('statTotalRecords')) document.getElementById('statTotalRecords').innerText = totalReg;
+    if(document.getElementById('statMissedRecords')) document.getElementById('statMissedRecords').innerText = missedTotal;
+
+    const formatBtnDate = (dStr) => {
+        if(!dStr || dStr === "--") return "--";
+        const date = new Date(dStr);
+        const m = date.toLocaleString('default', { month: 'short' });
+        return `${m}-${String(date.getDate()).padStart(2, '0')}-${date.getFullYear()}`;
+    };
 
     document.getElementById('records-table-body').innerHTML = filteredList.slice(0, 100).map(k => {
         let vitaminDisplay = "";
         if (k.vitaminTaken) {
-            vitaminDisplay = `<span class="badge complete"><i class="fas fa-check"></i> Complete</span>`;
+            vitaminDisplay = `<span class="badge complete" style="font-size:10px; padding: 4px 8px;"><i class="fas fa-check"></i> Complete</span>`;
         } else {
             const requiredVits = getVitaminsByAge(k.age);
-            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 11px; margin-bottom: 3px;"><i class="fas fa-times"></i> ${v}</div>`).join('');
+            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 10px; margin-bottom: 2px;"><i class="fas fa-times"></i> ${v}</div>`).join('');
         }
 
-        let cWFA = k.wfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
-        let cHFA = k.hfa.includes('Normal') ? '#2e7d32' : '#d32f2f';
-        let cWFLH = k.wflh.includes('Normal') ? '#2e7d32' : '#d32f2f';
+        const dobFmt = formatBtnDate(k.birthdate);
+        const domFmt = formatBtnDate(k.dateMeasured);
+        const sexFmt = k.gender === "Male" ? "M" : "F";
 
         return `
             <tr>
-                <td><strong>${k.name}</strong><br><small>${k.brgy}</small></td>
-                <td>${k.gender}</td>
-                <td>${k.age} mos</td>
-                <td>${k.weight} kg</td>
-                <td>${k.height} cm</td>
-                <td style="color:${cWFA}; font-weight:600; font-size:13px;">${k.wfa}</td>
-                <td style="color:${cHFA}; font-weight:600; font-size:13px;">${k.hfa}</td>
-                <td style="color:${cWFLH}; font-weight:600; font-size:13px;">${k.wflh}</td>
-                <td>${k.sitio}</td>
+                <td>Brgy. ${k.brgy},<br><small>${k.sitio}</small></td>
+                <td>${k.parents}</td>
+                <td><strong>${k.name}</strong></td>
+                <td>NO</td>
+                <td>${sexFmt}</td>
+                <td>${dobFmt}</td>
+                <td>${domFmt}</td>
+                <td><strong>${k.weight}</strong></td>
+                <td><strong>${k.height}</strong></td>
+                <td>${k.age}</td>
+                <td>${getStatusBadge(k.wfa)}</td>
+                <td>${getStatusBadge(k.hfa)}</td>
+                <td>${getStatusBadge(k.wflh)}</td>
                 <td>${vitaminDisplay}</td>
                 <td><button class="view-btn" onclick="openProfile('${k.brgy}', '${k.id}')">Profile</button></td>
             </tr>
@@ -413,9 +444,9 @@ function openProfile(brgy, id) {
                 
                 <div class="info-box">
                     <span class="info-label">Current Health Breakdown</span>
-                    <p style="font-size:13px; margin:5px 0;"><strong>WFA:</strong> <span style="color:${kid.wfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${kid.wfa}</span></p>
-                    <p style="font-size:13px; margin:5px 0;"><strong>HFA:</strong> <span style="color:${kid.hfa.includes('Normal')?'#2e7d32':'#d32f2f'}">${kid.hfa}</span></p>
-                    <p style="font-size:13px; margin:5px 0;"><strong>WFL/H:</strong> <span style="color:${kid.wflh.includes('Normal')?'#2e7d32':'#d32f2f'}">${kid.wflh}</span></p>
+                    <p style="font-size:13px; margin:5px 0;"><strong>WFA:</strong> <span style="color:${kid.wfa==='N'?'#2e7d32':'#d32f2f'}">${getFullStatusName(kid.wfa)}</span></p>
+                    <p style="font-size:13px; margin:5px 0;"><strong>HFA:</strong> <span style="color:${kid.hfa==='N'?'#2e7d32':'#d32f2f'}">${getFullStatusName(kid.hfa)}</span></p>
+                    <p style="font-size:13px; margin:5px 0;"><strong>WFL/H:</strong> <span style="color:${kid.wflh==='N'?'#2e7d32':'#d32f2f'}">${getFullStatusName(kid.wflh)}</span></p>
                 </div>
             </div>
             <div>

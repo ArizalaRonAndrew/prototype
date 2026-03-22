@@ -25,9 +25,7 @@
                 <li class="active" onclick="switchView('trends')"><i class="fas fa-chart-pie"></i> Health Trends</li>
                 <li onclick="switchView('records')"><i class="fas fa-clipboard-list"></i> Masterlist</li>
                 <li onclick="switchView('reports')"><i class="fas fa-chart-line"></i> Health Reports</li>
-                
                 <li onclick="switchView('map')"><i class="fas fa-map"></i> Barangay Map</li>
-                
                 <li class="logout-item" onclick="location.href='index.html'"><i class="fas fa-sign-out-alt"></i> Logout</li>
             </ul>
         </nav>
@@ -127,35 +125,49 @@
                 </header>
 
                 <section class="stats-cards">
+                    <div class="card normal">
+                        <div class="card-icon"><i class="fas fa-users" style="color:#2e7d32"></i></div>
+                        <div>
+                            <h4>Total Registered (Filtered)</h4>
+                            <p id="statTotalRecords" class="stat-num">0</p>
+                            <small>Children in current view</small>
+                        </div>
+                    </div>
                     <div class="card missed-kpi">
                         <div class="card-icon"><i class="fas fa-pills" style="color:#c62828"></i></div>
                         <div>
-                            <h4>Missed Vitamins (Based on Filters)</h4>
+                            <h4>Missed Vitamins (Filtered)</h4>
                             <p id="statMissedRecords" class="stat-num">0</p>
                             <small>Children needing follow-up</small>
                         </div>
                     </div>
                 </section>
 
-                <section class="list-section">
-                    <table class="nutri-table">
-                        <thead>
-                            <tr>
-                                <th>Name of Child</th>
-                                <th>Gender</th>
-                                <th>Age</th>
-                                <th>Weight</th>
-                                <th>Height</th>
-                                <th>WFA</th>
-                                <th>HFA</th>
-                                <th>WFL/H</th>
-                                <th>Sitio/Purok</th>
-                                <th>Vitamins</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="records-table-body"></tbody>
-                    </table>
+                <section class="list-section" style="padding: 10px;">
+                    <div class="report-table-wrapper">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 120px;">Address / Purok</th>
+                                    <th style="min-width: 140px;">Mother / Caregiver</th>
+                                    <th style="min-width: 140px;">Name of Child</th>
+                                    <th>IP<br>Group</th>
+                                    <th>Sex</th>
+                                    <th style="min-width: 90px;">Date of<br>Birth</th>
+                                    <th style="min-width: 90px;">Date<br>Measured</th>
+                                    <th>Weight<br><small>(kg)</small></th>
+                                    <th>Height<br><small>(cm)</small></th>
+                                    <th>Age<br><small>(mos)</small></th>
+                                    <th style="min-width: 70px;">WFA<br>Status</th>
+                                    <th style="min-width: 70px;">HFA<br>Status</th>
+                                    <th style="min-width: 70px;">WFL/H<br>Status</th>
+                                    <th style="min-width: 110px;">Vitamins</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="records-table-body"></tbody>
+                        </table>
+                    </div>
                 </section>
             </div>
 

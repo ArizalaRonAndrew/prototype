@@ -17,7 +17,7 @@ body { background-color: #f0f4f1; color: #333; overflow-x: hidden; }
 /* DASHBOARD LAYOUT */
 .dashboard-wrapper { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-/* SIDEBAR - STRICT WIDTHS ADDED */
+/* SIDEBAR */
 .sidebar { 
     width: 260px; 
     min-width: 260px; 
@@ -47,7 +47,7 @@ body { background-color: #f0f4f1; color: #333; overflow-x: hidden; }
     overflow-x: hidden; 
     height: 100vh; 
     scroll-behavior: smooth; 
-    position: relative; /* CRITICAL FOR FULL SCREEN MAP TAB */
+    position: relative;
 }
 
 .dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
@@ -121,3 +121,67 @@ select:focus { border-color: #2e7d32; }
 .total-highlight { background: #f0f4f1; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 15px; border: 1px solid #c8e6c9; }
 .total-highlight h3 { color: #1b5e20; font-size: 28px; line-height: 1; }
 .total-highlight span { font-size: 12px; color: #555; text-transform: uppercase; font-weight: 600; }
+
+/* --- CLEAN REPORT TABLE STYLES & COLOR CODING (Matches BNS Side) --- */
+.report-table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background: white;
+    margin-top: 15px;
+    border: 1px solid #e2e8f0;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Poppins', sans-serif;
+}
+
+.report-table thead {
+    background-color: #f8fafc;
+    color: #1e293b;
+}
+
+.report-table th {
+    padding: 12px 10px;
+    border-bottom: 2px solid #cbd5e1;
+    text-align: center;
+    vertical-align: bottom;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1.4;
+    border-right: 1px solid #f1f5f9;
+    white-space: normal;
+}
+
+.report-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 12px;
+    color: #334155;
+    border-right: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.report-table td:nth-child(1),
+.report-table td:nth-child(2),
+.report-table td:nth-child(3) {
+    text-align: left;
+}
+
+.badge-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 11px;
+    display: inline-block;
+    text-align: center;
+    min-width: 60px;
+}
+.badge-normal { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.badge-warning { background-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+.badge-danger { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.badge-pending { background-color: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }
