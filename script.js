@@ -16,10 +16,11 @@ function getRandomName() {
     return `${lastNames[Math.floor(Math.random() * lastNames.length)]}, ${firstNames[Math.floor(Math.random() * firstNames.length)]}`.toUpperCase();
 }
 
-// NUTRITION CALCULATION - Strictly aligned with specific BNS acronyms
+// FIXED NUTRITION CALCULATION FORMULAS
 function computeWFA(weight, ageMonths) {
     if (!weight) return "Pending";
-    let expectedW = ageMonths * 0.2 + 3.5; 
+    let expectedH = 60 + (ageMonths * 0.8); 
+    let expectedW = 15.5 * Math.pow(expectedH / 100, 2);
     if (weight < expectedW - 3) return "SUW"; // Severely Underweight
     if (weight < expectedW - 1.5) return "UW"; // Underweight
     if (weight > expectedW + 3) return "OW"; // Overweight
@@ -28,7 +29,7 @@ function computeWFA(weight, ageMonths) {
 
 function computeHFA(height, ageMonths) {
     if (!height) return "Pending";
-    let expectedH = ageMonths * 1.5 + 48;
+    let expectedH = 60 + (ageMonths * 0.8);
     if (height < expectedH - 6) return "SST"; // Severely Stunted
     if (height < expectedH - 3) return "ST"; // Stunted
     if (height > expectedH + 5) return "T"; // Tall
@@ -43,7 +44,7 @@ function computeWFLH(weight, height) {
     if (bmi < 13.5) return "MW"; // Moderately Wasted
     if (bmi > 18.5) return "OB"; // Obese
     if (bmi > 17.0) return "OW"; // Overweight
-    return "N"; // Normal
+    return "N"; // Normal (BMI 13.5 - 17.0)
 }
 
 function getVitaminsByAge(age) {
@@ -64,7 +65,7 @@ function getFullStatusName(code) {
     return map[code] || "Pending";
 }
 
-// Generate Master Data
+// GENERATE CONTROLLED MASTER DATA
 const masterData = {};
 const brgyCoords = {};
 
@@ -75,11 +76,30 @@ balayanBrgys.forEach((brgy, index) => {
         balayanCenter[1] + (Math.random() * 0.08 - 0.04)
     ];
 
+    // CONTROLLED RATIOS: 35 Normal, 5 Cases for standard barangays
+    let conditions = [];
+    if (index === 0) {
+        // Red Map Marker Example (12 Cases, 28 Normal)
+        for(let i=0; i<28; i++) conditions.push("N");
+        for(let i=0; i<3; i++) conditions.push("UW", "ST", "OW", "OB");
+    } else if (index === 1) {
+        // Yellow Map Marker Example (8 Cases, 32 Normal)
+        for(let i=0; i<32; i++) conditions.push("N");
+        for(let i=0; i<2; i++) conditions.push("UW", "ST", "OW", "OB");
+    } else {
+        // Standard Green Map Marker (5 Cases, 35 Normal)
+        for(let i=0; i<35; i++) conditions.push("N");
+        conditions.push("UW", "ST", "W", "OW", "OB");
+    }
+    
+    // Shuffle the conditions so they don't appear in order
+    conditions.sort(() => Math.random() - 0.5);
+
     for (let k = 1; k <= kidsPerBrgy; k++) {
         const history = [];
         for(let m=0; m<6; m++) { history.push(Math.random() > 0.2); } 
 
-        let age = Math.floor(Math.random() * 60) + 1; 
+        let age = Math.floor(Math.random() * 59) + 1; 
         
         let bDate = new Date();
         bDate.setMonth(bDate.getMonth() - age);
@@ -89,14 +109,38 @@ balayanBrgys.forEach((brgy, index) => {
         dDate.setDate(Math.floor(Math.random() * 28) + 1);
         let dateMeasured = dDate.toISOString().split('T')[0];
 
-        let weight = (Math.random() * 10 + 5).toFixed(1);
-        let height = (Math.random() * 40 + 50).toFixed(1);
+        // Ensure mathematically correct baseline dimensions for age
+        let expectedH = 60 + (age * 0.8); 
+        let expectedW = 15.5 * Math.pow(expectedH / 100, 2); 
+
+        let targetCond = conditions[k-1] || "N";
+        let weight = expectedW;
+        let height = expectedH;
+
+        // Force the specific health issue based on the array
+        if (targetCond === "N") {
+            weight += (Math.random() * 1.0 - 0.5);
+            height += (Math.random() * 2.0 - 1.0);
+        } else if (targetCond === "UW") {
+            weight -= 2.0; 
+        } else if (targetCond === "ST") {
+            height -= 4.0;
+            weight = 15.5 * Math.pow(height/100, 2); // Keep BMI normal so they are only stunted
+        } else if (targetCond === "W") {
+            weight -= 2.5; 
+        } else if (targetCond === "OW") {
+            weight += 3.5; 
+        } else if (targetCond === "OB") {
+            weight += 5.5; 
+        }
+
+        weight = weight.toFixed(1);
+        height = height.toFixed(1);
         
         let wfa = computeWFA(weight, age);
         let hfa = computeHFA(height, age);
         let wflh = computeWFLH(weight, height);
 
-        // Overall classification logic for specific Masterlist/Map views
         let overall = "Normal";
         if (["UW", "SUW"].includes(wfa) || ["ST", "SST"].includes(hfa) || ["MW", "SW"].includes(wflh)) overall = "Malnourished";
         if (["OB", "OW"].includes(wflh) || wfa === "OW") overall = "Obese";
@@ -117,7 +161,7 @@ balayanBrgys.forEach((brgy, index) => {
             overallStatus: overall,
             sitio: "PUROK " + Math.ceil(Math.random() * 5),
             brgy: brgy,
-            vitaminTaken: Math.random() > 0.3,
+            vitaminTaken: Math.random() > 0.2, // 80% compliance
             history: history 
         });
     }
@@ -161,7 +205,6 @@ function initFilters() {
     balayanBrgys.forEach(b => optionsTrendsRecords += `<option value="${b}">Brgy. ${b}</option>`);
     selectsTrendsRecords.forEach(select => { if(select) select.innerHTML = optionsTrendsRecords; });
 
-    // Populate new Barangay filter for Reports Header
     const reportBrgyFilter = document.getElementById('reportBrgyFilter');
     if (reportBrgyFilter) {
         let optionsReports = '<option value="all">All Barangays</option>';
@@ -170,7 +213,7 @@ function initFilters() {
     }
 }
 
-// MAP LOGIC
+// MAP LOGIC (Thresholds updated to show Red/Yellow on outlier barangays)
 let fullMap;
 
 function initFullMap() {
@@ -192,9 +235,9 @@ function initFullMap() {
         const badCases = mal + obese;
         const caseRatio = badCases / totalKids;
         
-        let markerColor = "#2e7d32"; 
-        if (caseRatio >= 0.55) markerColor = "#d32f2f"; 
-        else if (caseRatio >= 0.40) markerColor = "#fbc02d"; 
+        let markerColor = "#2e7d32"; // Standard Green
+        if (caseRatio >= 0.25) markerColor = "#d32f2f"; // RED (>25% Issues)
+        else if (caseRatio >= 0.15) markerColor = "#fbc02d"; // YELLOW (>15% Issues)
 
         L.circle(brgyCoords[brgy], { color: markerColor, fillColor: markerColor, fillOpacity: 0.5, radius: 500 }).addTo(fullMap);
         const marker = L.marker(brgyCoords[brgy]).addTo(fullMap);
@@ -274,7 +317,6 @@ function updateTrends() {
         else if(ageRange === '24-59') filteredKids = filteredKids.filter(k => k.age >= 24);
     }
 
-    // Custom Stats Calculation for Metric View
     let countNormal = 0, countUnder = 0, countOver = 0;
     filteredKids.forEach(k => {
         let val = selectedMetric === "WFLH" ? k.wflh : (selectedMetric === "HFA" ? k.hfa : k.wfa);
@@ -421,7 +463,6 @@ function updateRecords() {
     }).join('');
 }
 
-// UPDATED HEALTH REPORTS VIEW - Consolidated OPT Summary Matrix
 function updateReportsView() {
     if(!document.getElementById('reports-list-body')) return;
 
@@ -429,7 +470,6 @@ function updateReportsView() {
     const tbody = document.getElementById('reports-list-body');
     let reportListHTML = "";
 
-    // Function to calculate and output a single aggregated row for the matrix
     function generateSummaryRow(locationName, kids) {
         const total = kids.length;
         if (total === 0) return '';
@@ -439,19 +479,16 @@ function updateReportsView() {
         let wflh_n=0, wflh_mw=0, wflh_sw=0, wflh_ow=0, wflh_ob=0;
 
         kids.forEach(k => {
-            // WFA
             if(k.wfa === 'N') wfa_n++;
             else if(k.wfa === 'UW') wfa_uw++;
             else if(k.wfa === 'SUW') wfa_suw++;
             else if(k.wfa === 'OW') wfa_ow++;
 
-            // HFA
             if(k.hfa === 'N') hfa_n++;
             else if(k.hfa === 'ST') hfa_st++;
             else if(k.hfa === 'SST') hfa_sst++;
             else if(k.hfa === 'T') hfa_t++;
 
-            // WFL/H
             if(k.wflh === 'N') wflh_n++;
             else if(k.wflh === 'MW') wflh_mw++;
             else if(k.wflh === 'SW') wflh_sw++;
@@ -486,14 +523,12 @@ function updateReportsView() {
     let totals = { kids:[] };
 
     if (brgyFilter === 'all') {
-        // Show summary broken down by Barangay
         balayanBrgys.forEach(brgy => {
             const kids = masterData[brgy] || [];
             reportListHTML += generateSummaryRow(`Brgy. ${brgy}`, kids);
             totals.kids.push(...kids);
         });
     } else {
-        // Show summary broken down by Purok for the specific Barangay
         const kidsInBrgy = masterData[brgyFilter] || [];
         const puroks = ["PUROK 1", "PUROK 2", "PUROK 3", "PUROK 4", "PUROK 5"];
         puroks.forEach(purok => {
@@ -503,7 +538,6 @@ function updateReportsView() {
         totals.kids = kidsInBrgy;
     }
 
-    // Add Grand Total Row
     if (totals.kids.length > 0) {
         reportListHTML += generateSummaryRow("GRAND TOTAL", totals.kids).replace('<tr>', '<tr style="background-color:#f0f4f1; border-top:2px solid #94a3b8;">');
     }
