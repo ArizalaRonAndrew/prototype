@@ -94,7 +94,7 @@ function generateMockData() {
                 wfa: computeWFA(w, ageMonths),
                 hfa: computeHFA(h, ageMonths),
                 wflh: computeWFLH(w, h),
-                vitamins: ["Vitamin A"]
+                vitamins: ["Vitamin A (200k IU)", "Iron Drops"] // Updated sample
             });
         }
 
@@ -423,6 +423,7 @@ function renderReports() {
         let hfa = monthRecord ? monthRecord.hfa : "Pending";
         let wflh = monthRecord ? monthRecord.wflh : "Pending";
         let dateMeasured = monthRecord && monthRecord.dateMeasured ? monthRecord.dateMeasured : "--";
+        let vits = monthRecord && monthRecord.vitamins ? monthRecord.vitamins : [];
 
         if (monthRecord) {
             if (wfa === "N" && hfa === "N" && wflh === "N") {
@@ -444,6 +445,29 @@ function renderReports() {
         const domFmt = formatBtnDate(dateMeasured);
         const sexFmt = kid.gender === "Male" ? "M" : "F";
 
+        // Generate Vitamin Display logic matching the masterlist visual style
+        let vitDisplay = "--";
+        if (monthRecord) {
+            const requiredVits = getVitaminsByAge(age);
+            
+            if (vits.length >= requiredVits.length) {
+                vitDisplay = `<span class="badge complete" style="font-size:10px; padding: 4px 8px;"><i class="fas fa-check"></i> Complete</span>`;
+            } else {
+                vitDisplay = requiredVits.map(v => {
+                    let took = vits.includes(v);
+                    return `<div style="color: ${took ? '#2e7d32' : '#c62828'}; font-size: 10px; margin-bottom: 2px;">
+                                <i class="fas ${took ? 'fa-check' : 'fa-times'}"></i> ${v}
+                            </div>`;
+                }).join('');
+                
+                // Show any additional/custom vitamins taken
+                const customVits = vits.filter(v => !requiredVits.includes(v));
+                if (customVits.length > 0) {
+                    vitDisplay += customVits.map(v => `<div style="color: #2e7d32; font-size: 10px; margin-bottom: 2px;"><i class="fas fa-check"></i> ${v}</div>`).join('');
+                }
+            }
+        }
+
         reportListHTML += `
             <tr>
                 <td>${kid.purok}</td>
@@ -459,6 +483,7 @@ function renderReports() {
                 <td>${getStatusBadge(wfa)}</td>
                 <td>${getStatusBadge(hfa)}</td>
                 <td>${getStatusBadge(wflh)}</td>
+                <td>${vitDisplay}</td>
             </tr>
         `;
     });
@@ -467,7 +492,8 @@ function renderReports() {
     document.getElementById('rep-normal').innerText = normal;
     document.getElementById('rep-mal').innerText = mal;
     document.getElementById('rep-obese').innerText = obese;
-    document.getElementById('reports-table-body').innerHTML = reportListHTML || `<tr><td colspan="13" style="text-align:center;">No records for this month.</td></tr>`;
+    // Updated colspan to 14 to fit the new vitamins column
+    document.getElementById('reports-table-body').innerHTML = reportListHTML || `<tr><td colspan="14" style="text-align:center;">No records for this month.</td></tr>`;
 }
 
 function submitReportToAdmin() {
