@@ -4,7 +4,7 @@ const balayanBrgys = [
     "Caloocan", "Lanatan", "San Roque", "Ermita", "Gumamela", 
     "Navotas", "Palikpikan", "Sampaga", "Santol", "San Pioquinto",
     "Dalig", "Langgangan", "Canda", "Pooc", "Tanggoy"
-]; 
+];
 const kidsPerBrgy = 40; 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -20,31 +20,31 @@ function getRandomName() {
 function computeWFA(weight, ageMonths) {
     if (!weight) return "Pending";
     let expectedH = 60 + (ageMonths * 0.8); 
-    let expectedW = 15.5 * Math.pow(expectedH / 100, 2);
-    if (weight < expectedW - 3) return "SUW"; // Severely Underweight
-    if (weight < expectedW - 1.5) return "UW"; // Underweight
-    if (weight > expectedW + 3) return "OW"; // Overweight
-    return "N"; // Normal
+    let expectedW = 15.5 * Math.pow(expectedH / 100, 2); 
+    if (weight < expectedW - 3) return "SUW"; 
+    if (weight < expectedW - 1.5) return "UW"; 
+    if (weight > expectedW + 3) return "OW"; 
+    return "N"; 
 }
 
 function computeHFA(height, ageMonths) {
     if (!height) return "Pending";
     let expectedH = 60 + (ageMonths * 0.8);
-    if (height < expectedH - 6) return "SST"; // Severely Stunted
-    if (height < expectedH - 3) return "ST"; // Stunted
-    if (height > expectedH + 5) return "T"; // Tall
-    return "N"; // Normal
+    if (height < expectedH - 6) return "SST"; 
+    if (height < expectedH - 3) return "ST"; 
+    if (height > expectedH + 5) return "T"; 
+    return "N"; 
 }
 
 function computeWFLH(weight, height) {
     if (!weight || !height) return "Pending";
     let hM = height / 100;
     let bmi = weight / (hM * hM);
-    if (bmi < 12.0) return "SW"; // Severely Wasted
-    if (bmi < 13.5) return "MW"; // Moderately Wasted
-    if (bmi > 18.5) return "OB"; // Obese
-    if (bmi > 17.0) return "OW"; // Overweight
-    return "N"; // Normal (BMI 13.5 - 17.0)
+    if (bmi < 12.0) return "SW"; 
+    if (bmi < 13.5) return "MW"; 
+    if (bmi > 18.5) return "OB"; 
+    if (bmi > 17.0) return "OW"; 
+    return "N"; 
 }
 
 function getVitaminsByAge(age) {
@@ -76,48 +76,37 @@ balayanBrgys.forEach((brgy, index) => {
         balayanCenter[1] + (Math.random() * 0.08 - 0.04)
     ];
 
-    // CONTROLLED RATIOS: 35 Normal, 5 Cases for standard barangays
     let conditions = [];
     if (index === 0) {
-        // Red Map Marker Example (12 Cases, 28 Normal)
         for(let i=0; i<28; i++) conditions.push("N");
         for(let i=0; i<3; i++) conditions.push("UW", "ST", "OW", "OB");
     } else if (index === 1) {
-        // Yellow Map Marker Example (8 Cases, 32 Normal)
         for(let i=0; i<32; i++) conditions.push("N");
         for(let i=0; i<2; i++) conditions.push("UW", "ST", "OW", "OB");
     } else {
-        // Standard Green Map Marker (5 Cases, 35 Normal)
         for(let i=0; i<35; i++) conditions.push("N");
         conditions.push("UW", "ST", "W", "OW", "OB");
     }
     
-    // Shuffle the conditions so they don't appear in order
     conditions.sort(() => Math.random() - 0.5);
 
     for (let k = 1; k <= kidsPerBrgy; k++) {
         const history = [];
         for(let m=0; m<6; m++) { history.push(Math.random() > 0.2); } 
-
         let age = Math.floor(Math.random() * 59) + 1; 
-        
         let bDate = new Date();
         bDate.setMonth(bDate.getMonth() - age);
         let birthdate = bDate.toISOString().split('T')[0];
-
         let dDate = new Date();
         dDate.setDate(Math.floor(Math.random() * 28) + 1);
         let dateMeasured = dDate.toISOString().split('T')[0];
 
-        // Ensure mathematically correct baseline dimensions for age
         let expectedH = 60 + (age * 0.8); 
         let expectedW = 15.5 * Math.pow(expectedH / 100, 2); 
-
         let targetCond = conditions[k-1] || "N";
         let weight = expectedW;
         let height = expectedH;
 
-        // Force the specific health issue based on the array
         if (targetCond === "N") {
             weight += (Math.random() * 1.0 - 0.5);
             height += (Math.random() * 2.0 - 1.0);
@@ -125,7 +114,7 @@ balayanBrgys.forEach((brgy, index) => {
             weight -= 2.0; 
         } else if (targetCond === "ST") {
             height -= 4.0;
-            weight = 15.5 * Math.pow(height/100, 2); // Keep BMI normal so they are only stunted
+            weight = 15.5 * Math.pow(height/100, 2); 
         } else if (targetCond === "W") {
             weight -= 2.5; 
         } else if (targetCond === "OW") {
@@ -161,7 +150,7 @@ balayanBrgys.forEach((brgy, index) => {
             overallStatus: overall,
             sitio: "PUROK " + Math.ceil(Math.random() * 5),
             brgy: brgy,
-            vitaminTaken: Math.random() > 0.2, // 80% compliance
+            vitaminTaken: Math.random() > 0.2, 
             history: history 
         });
     }
@@ -189,6 +178,16 @@ function switchView(viewName) {
     
     const menuItems = document.querySelectorAll('#sidebar-menu li');
     menuItems.forEach(item => item.classList.remove('active'));
+
+    // LOCK SCROLLBARS FOR MAP
+    const mainContent = document.querySelector('.main-content');
+    if (viewName === 'map') {
+        mainContent.style.padding = '0';
+        mainContent.style.overflow = 'hidden';
+    } else {
+        mainContent.style.padding = ''; 
+        mainContent.style.overflow = ''; 
+    }
     
     if(viewName === 'trends') { menuItems[0].classList.add('active'); updateTrends(); }
     if(viewName === 'records') { menuItems[1].classList.add('active'); updateRecords(); }
@@ -213,9 +212,8 @@ function initFilters() {
     }
 }
 
-// MAP LOGIC (Thresholds updated to show Red/Yellow on outlier barangays)
+// MAP LOGIC
 let fullMap;
-
 function initFullMap() {
     const mapEl = document.getElementById('full-city-map');
     if (!mapEl) return; 
@@ -235,51 +233,73 @@ function initFullMap() {
         const badCases = mal + obese;
         const caseRatio = badCases / totalKids;
         
-        let markerColor = "#2e7d32"; // Standard Green
-        if (caseRatio >= 0.25) markerColor = "#d32f2f"; // RED (>25% Issues)
-        else if (caseRatio >= 0.15) markerColor = "#fbc02d"; // YELLOW (>15% Issues)
+        let markerColor = "#2e7d32"; 
+        if (caseRatio >= 0.25) markerColor = "#d32f2f"; 
+        else if (caseRatio >= 0.15) markerColor = "#fbc02d"; 
 
         L.circle(brgyCoords[brgy], { color: markerColor, fillColor: markerColor, fillOpacity: 0.5, radius: 500 }).addTo(fullMap);
+        
         const marker = L.marker(brgyCoords[brgy]).addTo(fullMap);
+        
+        // PERMANENT LABELS
+        marker.bindTooltip(`Brgy. ${brgy}`, {
+            permanent: true,       
+            direction: 'bottom',   
+            className: 'brgy-map-label', 
+            offset: [0, 5]         
+        }).openTooltip();
+
         marker.on('click', () => { openInfoPanel(brgy, normal, mal, obese, badCases, markerColor, totalKids); });
     });
 }
 
+// AI-SIMULATED RECOMMENDATION
 function openInfoPanel(brgy, normal, mal, obese, badCases, colorCode, totalKids) {
     const panel = document.getElementById('brgy-info-panel');
     const content = document.getElementById('panel-content');
     
-    let suggestionClass = "green";
-    let suggestionText = "GOOD: The majority of children in this barangay are healthy. Maintain current feeding and vitamin programs.";
-    
-    if(colorCode === "#d32f2f") {
-        suggestionClass = "red";
-        suggestionText = "URGENT ACTION NEEDED: Health issues heavily outweigh normal cases. Immediate intervention required.";
+    let aiAnalysis = "";
+    let aiAction = "";
+    const issueRate = ((badCases / totalKids) * 100).toFixed(1);
+
+    if (badCases === 0) {
+        aiAnalysis = `Data indicates an exceptional health profile for Brgy. ${brgy}, with 100% of children falling within normal nutritional parameters.`;
+        aiAction = "Continue sustaining current BNS monitoring and standard vitamin distributions.";
+    } else if (colorCode === "#d32f2f") {
+        aiAnalysis = `Critical alert: Statistical analysis detects a significant nutritional deficit in Brgy. ${brgy}. The community currently has a concerning ${issueRate}% issue rate.`;
+        aiAction = `Immediate Operation Timbang Plus (OPT+) reassessment is strongly advised. Prioritize the ${mal} malnourished children for local supplementary feeding.`;
     } else if (colorCode === "#fbc02d") {
-        suggestionClass = "yellow";
-        suggestionText = "WARNING: Health issues are almost equal to normal cases. Monitor closely and schedule targeted parental health seminars.";
+        aiAnalysis = `Elevated health risks detected in Brgy. ${brgy}. The dataset shows ${badCases} children falling outside of normal parameters.`;
+        aiAction = mal > obese ? `Schedule targeted nutritional counseling focusing on the ${mal} cases of malnutrition.` : `Initiate awareness seminars focusing on balanced diets to address the ${obese} cases of obesity.`;
+    } else {
+        aiAnalysis = `Brgy. ${brgy} maintains a stable health baseline. The vast majority of children (${normal}) are healthy.`;
+        aiAction = "Maintain standard tracking protocols and routine monthly checkup follow-ups.";
     }
 
     content.innerHTML = `
         <h2 style="color: #1b5e20; margin-bottom: 5px;">Brgy. ${brgy}</h2>
         <p style="color: #666; font-size: 13px; margin-bottom: 20px;"><i class="fas fa-map-marker-alt"></i> Balayan, Batangas</p>
-        <div class="total-highlight">
-            <h3>${totalKids}</h3>
-            <span>Total Registered Children</span>
-        </div>
+        <div class="total-highlight"><h3>${totalKids}</h3><span>Total Registered Children</span></div>
         <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
             <h3 style="margin-bottom: 15px; font-size: 14px; color: #333;">Health Status Breakdown</h3>
             <div class="stat-row"><span><i class="fas fa-circle" style="color:#2e7d32"></i> Normal:</span> <strong style="color: #2e7d32">${normal}</strong></div>
             <div class="stat-row"><span><i class="fas fa-circle" style="color:#d32f2f"></i> Malnourished:</span> <strong style="color: #d32f2f">${mal}</strong></div>
             <div class="stat-row"><span><i class="fas fa-circle" style="color:#fbc02d"></i> Obese:</span> <strong style="color: #fbc02d">${obese}</strong></div>
-            <div class="stat-row" style="border:none; padding-top: 10px; margin-bottom: 0;">
-                <span><strong>Total Health Cases:</strong></span> <strong>${badCases}</strong>
-            </div>
         </div>
-        <h3 style="font-size: 15px; color: #333;">System Recommendation</h3>
-        <div class="suggestion-box ${suggestionClass}">${suggestionText}</div>
+        <div class="ai-suggestion-box">
+            <div class="ai-header"><i class="fas fa-sparkles"></i> AI Insight & Recommendation</div>
+            <div id="ai-typing-content" class="ai-content typing-effect">Analyzing barangay datasets</div>
+        </div>
     `;
     panel.classList.add('open');
+
+    setTimeout(() => {
+        const aiBox = document.getElementById('ai-typing-content');
+        if(aiBox) {
+            aiBox.classList.remove('typing-effect');
+            aiBox.innerHTML = `<strong>Analysis:</strong> ${aiAnalysis}<br><br><strong>Action:</strong> ${aiAction}`;
+        }
+    }, 1500);
 }
 
 function closeInfoPanel() { if(document.getElementById('brgy-info-panel')) document.getElementById('brgy-info-panel').classList.remove('open'); }
@@ -303,11 +323,9 @@ let comparisonChart;
 
 function updateTrends() {
     if(!document.getElementById('trendBrgy')) return; 
-
     const brgy = document.getElementById('trendBrgy').value;
     const ageRange = document.getElementById('trendAge').value;
-    const selectedMetric = document.getElementById('trendStatus').value; // Values: WFLH, HFA, WFA
-
+    const selectedMetric = document.getElementById('trendStatus').value; 
     let baseKids = brgy === 'all' ? Object.values(masterData).flat() : masterData[brgy];
     let filteredKids = baseKids;
     
@@ -375,7 +393,6 @@ function updateTrends() {
 
     const barData = [];
     const barColors = [];
-
     balayanBrgys.forEach(b => {
         let list = masterData[b];
         if(ageRange !== 'all') {
@@ -383,7 +400,6 @@ function updateTrends() {
             else if(ageRange === '12-23') list = list.filter(k => k.age >= 12 && k.age <= 23);
             else if(ageRange === '24-59') list = list.filter(k => k.age >= 24);
         }
-
         let issuesCount = 0;
         list.forEach(k => {
             let val = selectedMetric === "WFLH" ? k.wflh : (selectedMetric === "HFA" ? k.hfa : k.wfa);
@@ -392,7 +408,6 @@ function updateTrends() {
 
         let baseColor = '#f57c00'; 
         if (brgy !== 'all' && brgy !== b) baseColor += '40'; 
-
         barData.push(issuesCount);
         barColors.push(baseColor);
     });
@@ -406,7 +421,6 @@ function updateTrends() {
 
 function updateRecords() {
     if(!document.getElementById('filterBrgy')) return;
-    
     const brgy = document.getElementById('filterBrgy').value;
     const ageRange = document.getElementById('filterAge').value;
     const status = document.getElementById('filterStatus').value;
@@ -414,7 +428,6 @@ function updateRecords() {
 
     let baseList = brgy === 'all' ? Object.values(masterData).flat() : masterData[brgy];
     let filteredList = filterDataList(baseList, ageRange, status, vitStatus);
-
     const totalReg = filteredList.length;
     const missedTotal = filteredList.filter(k => !k.vitaminTaken).length;
 
@@ -429,25 +442,16 @@ function updateRecords() {
     };
 
     document.getElementById('records-table-body').innerHTML = filteredList.slice(0, 100).map(k => {
-        let vitaminDisplay = "";
-        if (k.vitaminTaken) {
-            vitaminDisplay = `<span class="badge complete" style="font-size:10px; padding: 4px 8px;"><i class="fas fa-check"></i> Complete</span>`;
-        } else {
-            const requiredVits = getVitaminsByAge(k.age);
-            vitaminDisplay = requiredVits.map(v => `<div style="color: #c62828; font-size: 10px; margin-bottom: 2px;"><i class="fas fa-times"></i> ${v}</div>`).join('');
-        }
-
+        let vitaminDisplay = k.vitaminTaken ? `<span class="badge complete" style="font-size:10px; padding: 4px 8px;"><i class="fas fa-check"></i> Complete</span>` : getVitaminsByAge(k.age).map(v => `<div style="color: #c62828; font-size: 10px; margin-bottom: 2px;"><i class="fas fa-times"></i> ${v}</div>`).join('');
         const dobFmt = formatBtnDate(k.birthdate);
         const domFmt = formatBtnDate(k.dateMeasured);
-        const sexFmt = k.gender === "Male" ? "M" : "F";
-
         return `
             <tr>
                 <td>Brgy. ${k.brgy},<br><small>${k.sitio}</small></td>
                 <td>${k.parents}</td>
                 <td><strong>${k.name}</strong></td>
                 <td>NO</td>
-                <td>${sexFmt}</td>
+                <td>${k.gender === "Male" ? "M" : "F"}</td>
                 <td>${dobFmt}</td>
                 <td>${domFmt}</td>
                 <td><strong>${k.weight}</strong></td>
@@ -465,7 +469,6 @@ function updateRecords() {
 
 function updateReportsView() {
     if(!document.getElementById('reports-list-body')) return;
-
     const brgyFilter = document.getElementById('reportBrgyFilter').value;
     const tbody = document.getElementById('reports-list-body');
     let reportListHTML = "";
@@ -473,55 +476,16 @@ function updateReportsView() {
     function generateSummaryRow(locationName, kids) {
         const total = kids.length;
         if (total === 0) return '';
-
-        let wfa_n=0, wfa_uw=0, wfa_suw=0, wfa_ow=0;
-        let hfa_n=0, hfa_st=0, hfa_sst=0, hfa_t=0;
-        let wflh_n=0, wflh_mw=0, wflh_sw=0, wflh_ow=0, wflh_ob=0;
-
+        let wfa_n=0, wfa_uw=0, wfa_suw=0, wfa_ow=0, hfa_n=0, hfa_st=0, hfa_sst=0, hfa_t=0, wflh_n=0, wflh_mw=0, wflh_sw=0, wflh_ow=0, wflh_ob=0;
         kids.forEach(k => {
-            if(k.wfa === 'N') wfa_n++;
-            else if(k.wfa === 'UW') wfa_uw++;
-            else if(k.wfa === 'SUW') wfa_suw++;
-            else if(k.wfa === 'OW') wfa_ow++;
-
-            if(k.hfa === 'N') hfa_n++;
-            else if(k.hfa === 'ST') hfa_st++;
-            else if(k.hfa === 'SST') hfa_sst++;
-            else if(k.hfa === 'T') hfa_t++;
-
-            if(k.wflh === 'N') wflh_n++;
-            else if(k.wflh === 'MW') wflh_mw++;
-            else if(k.wflh === 'SW') wflh_sw++;
-            else if(k.wflh === 'OW') wflh_ow++;
-            else if(k.wflh === 'OB') wflh_ob++;
+            if(k.wfa === 'N') wfa_n++; else if(k.wfa === 'UW') wfa_uw++; else if(k.wfa === 'SUW') wfa_suw++; else if(k.wfa === 'OW') wfa_ow++;
+            if(k.hfa === 'N') hfa_n++; else if(k.hfa === 'ST') hfa_st++; else if(k.hfa === 'SST') hfa_sst++; else if(k.hfa === 'T') hfa_t++;
+            if(k.wflh === 'N') wflh_n++; else if(k.wflh === 'MW') wflh_mw++; else if(k.wflh === 'SW') wflh_sw++; else if(k.wflh === 'OW') wflh_ow++; else if(k.wflh === 'OB') wflh_ob++;
         });
-
-        return `
-            <tr>
-                <td style="text-align:left; padding-left:15px; font-weight:600; color:#37474f;">${locationName}</td>
-                <td style="font-weight:bold; font-size:14px;">${total}</td>
-                
-                <td>${wfa_n}</td>
-                <td style="color:#e65100; font-weight:600;">${wfa_uw}</td>
-                <td style="color:#c62828; font-weight:bold;">${wfa_suw}</td>
-                <td style="color:#f9a825; font-weight:600;">${wfa_ow}</td>
-
-                <td>${hfa_n}</td>
-                <td style="color:#e65100; font-weight:600;">${hfa_st}</td>
-                <td style="color:#c62828; font-weight:bold;">${hfa_sst}</td>
-                <td style="color:#1976d2; font-weight:600;">${hfa_t}</td>
-
-                <td>${wflh_n}</td>
-                <td style="color:#e65100; font-weight:600;">${wflh_mw}</td>
-                <td style="color:#c62828; font-weight:bold;">${wflh_sw}</td>
-                <td style="color:#f9a825; font-weight:600;">${wflh_ow}</td>
-                <td style="color:#b71c1c; font-weight:bold;">${wflh_ob}</td>
-            </tr>
-        `;
+        return `<tr><td style="text-align:left; padding-left:15px; font-weight:600; color:#37474f;">${locationName}</td><td style="font-weight:bold;">${total}</td><td>${wfa_n}</td><td>${wfa_uw}</td><td>${wfa_suw}</td><td>${wfa_ow}</td><td>${hfa_n}</td><td>${hfa_st}</td><td>${hfa_sst}</td><td>${hfa_t}</td><td>${wflh_n}</td><td>${wflh_mw}</td><td>${wflh_sw}</td><td>${wflh_ow}</td><td>${wflh_ob}</td></tr>`;
     }
 
     let totals = { kids:[] };
-
     if (brgyFilter === 'all') {
         balayanBrgys.forEach(brgy => {
             const kids = masterData[brgy] || [];
@@ -530,61 +494,28 @@ function updateReportsView() {
         });
     } else {
         const kidsInBrgy = masterData[brgyFilter] || [];
-        const puroks = ["PUROK 1", "PUROK 2", "PUROK 3", "PUROK 4", "PUROK 5"];
-        puroks.forEach(purok => {
-            const kidsInPurok = kidsInBrgy.filter(k => k.sitio === purok);
-            reportListHTML += generateSummaryRow(`${brgyFilter} - ${purok}`, kidsInPurok);
+        ["PUROK 1", "PUROK 2", "PUROK 3", "PUROK 4", "PUROK 5"].forEach(purok => {
+            reportListHTML += generateSummaryRow(`${brgyFilter} - ${purok}`, kidsInBrgy.filter(k => k.sitio === purok));
         });
         totals.kids = kidsInBrgy;
     }
-
-    if (totals.kids.length > 0) {
-        reportListHTML += generateSummaryRow("GRAND TOTAL", totals.kids).replace('<tr>', '<tr style="background-color:#f0f4f1; border-top:2px solid #94a3b8;">');
-    }
-
-    tbody.innerHTML = reportListHTML || `<tr><td colspan="15" style="text-align:center;">No records available.</td></tr>`;
+    if (totals.kids.length > 0) reportListHTML += generateSummaryRow("GRAND TOTAL", totals.kids).replace('<tr>', '<tr style="background-color:#f0f4f1;">');
+    tbody.innerHTML = reportListHTML || `<tr><td colspan="15">No records.</td></tr>`;
 }
 
 // PROFILE MODAL
 function openProfile(brgy, id) {
     const kid = masterData[brgy].find(k => k.id === id);
     const vits = getVitaminsByAge(kid.age);
-    
     let historyHTML = "";
     const pastMonthsNames = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
-    kid.history.forEach((took, i) => {
-        historyHTML += `<div class="month-box ${took ? 'green' : 'red'}">${pastMonthsNames[i]}<br><i class="fas ${took ? 'fa-check' : 'fa-times'}"></i></div>`;
-    });
+    kid.history.forEach((took, i) => historyHTML += `<div class="month-box ${took ? 'green' : 'red'}">${pastMonthsNames[i]}<br><i class="fas ${took ? 'fa-check' : 'fa-times'}"></i></div>`);
 
     document.getElementById('modal-data').innerHTML = `
-        <div class="profile-header">
-            <div class="profile-avatar"><i class="fas fa-child"></i></div>
-            <div class="profile-title"><h2>${kid.name}</h2><p><i class="fas fa-map-marker-alt"></i> Brgy. ${kid.brgy}, ${kid.sitio}</p></div>
-        </div>
+        <div class="profile-header"><div class="profile-avatar"><i class="fas fa-child"></i></div><div class="profile-title"><h2>${kid.name}</h2><p>Brgy. ${kid.brgy}, ${kid.sitio}</p></div></div>
         <div class="profile-grid">
-            <div>
-                <div class="info-box"><span class="info-label">Parents / Guardian</span><span class="info-value">${kid.parents}</span></div>
-                <div class="info-box"><span class="info-label">Gender & Age</span><span class="info-value">${kid.gender} | ${kid.age} Months</span></div>
-                
-                <div class="info-box">
-                    <span class="info-label">Current Health Breakdown</span>
-                    <p style="font-size:13px; margin:5px 0;"><strong>WFA:</strong> <span style="color:${kid.wfa==='N'?'#2e7d32':'#d32f2f'}">${getFullStatusName(kid.wfa)}</span></p>
-                    <p style="font-size:13px; margin:5px 0;"><strong>HFA:</strong> <span style="color:${kid.hfa==='N'?'#2e7d32':'#d32f2f'}">${getFullStatusName(kid.hfa)}</span></p>
-                    <p style="font-size:13px; margin:5px 0;"><strong>WFL/H:</strong> <span style="color:${kid.wflh==='N'?'#2e7d32':'#d32f2f'}">${getFullStatusName(kid.wflh)}</span></p>
-                </div>
-            </div>
-            <div>
-                <div class="vitamin-card" style="border-left: 4px solid ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}">
-                    <h4>Current Month Vitamins</h4>
-                    <ul class="vit-list">
-                        ${vits.map(v => `<li><span style="color: ${kid.vitaminTaken ? '#2e7d32' : '#d32f2f'}"><i class="fas ${kid.vitaminTaken ? 'fa-check' : 'fa-times'}"></i></span> ${v}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="history-tracker">
-                    <h4>Past 6 Months Compliance Insight</h4>
-                    <div class="months-grid">${historyHTML}</div>
-                </div>
-            </div>
+            <div><div class="info-box"><span class="info-label">Parents</span><span class="info-value">${kid.parents}</span></div><div class="info-box"><span class="info-label">Current Breakdown</span><p><strong>WFA:</strong> ${getFullStatusName(kid.wfa)}</p><p><strong>HFA:</strong> ${getFullStatusName(kid.hfa)}</p></div></div>
+            <div><div class="vitamin-card"><h4>Vitamins</h4><ul>${vits.map(v => `<li><i class="fas ${kid.vitaminTaken ? 'fa-check' : 'fa-times'}"></i> ${v}</li>`).join('')}</ul></div><div class="history-tracker"><h4>Insight</h4><div class="months-grid">${historyHTML}</div></div></div>
         </div>
     `;
     document.getElementById('profileModal').style.display = 'flex';
@@ -592,9 +523,4 @@ function openProfile(brgy, id) {
 
 function closeModal() { document.getElementById('profileModal').style.display = 'none'; }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    initFilters();
-    initFullMap(); 
-    if(document.getElementById('trendBrgy')) updateTrends(); 
-});
+document.addEventListener('DOMContentLoaded', () => { initFilters(); initFullMap(); if(document.getElementById('trendBrgy')) updateTrends(); });

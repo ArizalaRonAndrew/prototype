@@ -13,31 +13,32 @@ body.dashboard-body {
     overflow-x: hidden;
 }
 
-/* Sidebar Styles */
+/* Sidebar Styles (Updated to match Admin Side) */
 .dashboard-wrapper {
     display: flex;
     height: 100vh;
     width: 100vw;
-    overflow: hidden; 
+    overflow: hidden;
 }
 
 .sidebar {
     width: 260px;
-    min-width: 260px; 
-    max-width: 260px; 
-    flex-shrink: 0;   
-    background-color: #1b5e20;
-    color: #fff;
+    min-width: 260px;
+    max-width: 260px;
+    flex-shrink: 0;
+    background: #113a15; /* Darker green from admin */
+    color: white;
+    padding: 25px; /* Added padding to match admin */
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    z-index: 10;
+    z-index: 1000; /* Matched admin z-index */
 }
 
 .sidebar-header {
-    padding: 25px 20px;
-    text-align: center;
     border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    text-align: center;
 }
 
 .sidebar-header h3 {
@@ -48,34 +49,43 @@ body.dashboard-body {
 
 #sidebar-menu {
     list-style: none;
-    padding: 20px 0;
     flex-grow: 1;
+    padding: 0; /* Reset padding to match admin */
 }
 
 #sidebar-menu li {
-    padding: 15px 25px;
+    padding: 14px 18px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    border-radius: 8px; /* Rounded corners from admin */
+    margin-bottom: 10px;
+    transition: 0.3s;
+    font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 15px;
-    font-size: 15px;
+    gap: 10px;
 }
 
-#sidebar-menu li:hover, #sidebar-menu li.active {
-    background-color: #2e7d32;
-    border-left: 4px solid #a5d6a7;
+#sidebar-menu li.active {
+    background: #2e7d32;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Shadow effect from admin */
+}
+
+#sidebar-menu li:hover:not(.active) {
+    background: rgba(255,255,255,0.1);
 }
 
 .logout-item {
     margin-top: auto;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    color: #ffab91; /* Peach color from admin */
+    border: 1px solid rgba(255, 171, 145, 0.3); /* Border from admin */
+    justify-content: center;
 }
 
 .logout-item:hover {
-    background-color: #c62828 !important;
-    border-left-color: #ffcdd2 !important;
+    background: rgba(255, 171, 145, 0.1) !important;
 }
+
 
 /* Main Content Styles & SCROLLBAR HIDING */
 .main-content {
@@ -133,6 +143,7 @@ body.dashboard-body {
     outline: none;
 }
 
+
 /* Stats Cards */
 .stats-cards {
     display: grid;
@@ -177,6 +188,7 @@ body.dashboard-body {
     color: #333;
 }
 
+
 /* Table Styles */
 .list-section {
     background: #fff;
@@ -204,6 +216,7 @@ body.dashboard-body {
     background-color: #f9f9f9;
 }
 
+
 /* Buttons & Badges */
 .view-btn {
     padding: 6px 15px;
@@ -230,6 +243,7 @@ body.dashboard-body {
     font-weight: 500;
     transition: 0.2s;
 }
+
 .add-btn:hover { background: #1b5e20; }
 
 .badge {
@@ -238,8 +252,10 @@ body.dashboard-body {
     font-size: 12px;
     font-weight: 600;
 }
+
 .badge.complete { background: #e8f5e9; color: #2e7d32; }
 .badge.pending { background: #ffebee; color: #c62828; }
+
 
 /* Modals */
 .modal-overlay {
@@ -330,6 +346,7 @@ body.dashboard-body {
     border-radius: 8px;
     margin-bottom: 15px;
 }
+
 .info-label { display: block; font-size: 12px; color: #888; margin-bottom: 3px; }
 .info-value { font-size: 15px; font-weight: 500; color: #333; }
 
@@ -351,18 +368,15 @@ body.dashboard-body {
     margin-top: 15px;
     border: 1px solid #e2e8f0;
 }
-
 .report-table {
     width: 100%;
     border-collapse: collapse;
     font-family: 'Poppins', sans-serif;
 }
-
 .report-table thead {
     background-color: #f8fafc;
     color: #1e293b;
 }
-
 .report-table th {
     padding: 12px 10px;
     border-bottom: 2px solid #cbd5e1;
@@ -374,7 +388,6 @@ body.dashboard-body {
     border-right: 1px solid #f1f5f9;
     white-space: normal;
 }
-
 .report-table td {
     padding: 12px 10px;
     border-bottom: 1px solid #f1f5f9;
@@ -385,7 +398,6 @@ body.dashboard-body {
     border-right: 1px solid #f1f5f9;
     white-space: nowrap;
 }
-
 .report-table td:nth-child(1),
 .report-table td:nth-child(2),
 .report-table td:nth-child(3) {
