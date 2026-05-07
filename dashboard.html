@@ -25,6 +25,7 @@
                 <li class="active" onclick="switchView('trends')"><i class="fas fa-chart-pie"></i> Health Trends</li>
                 <li onclick="switchView('records')"><i class="fas fa-clipboard-list"></i> Masterlist</li>
                 <li onclick="switchView('reports')"><i class="fas fa-chart-line"></i> Health Reports</li>
+                <li onclick="switchView('vit-reports')"><i class="fas fa-file-medical-alt"></i> Vitamin Reports</li>
                 <li onclick="switchView('map')"><i class="fas fa-map"></i> Barangay Map</li>
                 <li class="logout-item" onclick="location.href='index.html'"><i class="fas fa-sign-out-alt"></i> Logout</li>
             </ul>
@@ -115,11 +116,6 @@
                             <option value="Malnourished">Malnourished</option>
                             <option value="Obese">Obese</option>
                         </select>
-                        <select id="filterVitamin" onchange="updateRecords()">
-                            <option value="all">Vitamin Status (All)</option>
-                            <option value="Complete">Complete Intake</option>
-                            <option value="Missed">Missed Intake</option>
-                        </select>
                     </div>
                 </header>
 
@@ -130,14 +126,6 @@
                             <h4>Total Registered (Filtered)</h4>
                             <p id="statTotalRecords" class="stat-num">0</p>
                             <small>Children in current view</small>
-                        </div>
-                    </div>
-                    <div class="card missed-kpi">
-                        <div class="card-icon"><i class="fas fa-pills" style="color:#c62828"></i></div>
-                        <div>
-                            <h4>Missed Vitamins (Filtered)</h4>
-                            <p id="statMissedRecords" class="stat-num">0</p>
-                            <small>Children needing follow-up</small>
                         </div>
                     </div>
                 </section>
@@ -160,7 +148,6 @@
                                     <th style="min-width: 70px;">WFA<br>Status</th>
                                     <th style="min-width: 70px;">HFA<br>Status</th>
                                     <th style="min-width: 70px;">WFL/H<br>Status</th>
-                                    <th style="min-width: 110px;">Vitamins</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -214,6 +201,48 @@
                     </div>
                 </section>
             </div>
+
+            <div id="vit-reports-view" class="view" style="display: none;">
+                <header class="dashboard-header">
+                    <div class="header-titles">
+                        <h1>Consolidated Vitamin Reports</h1>
+                        <p>List of children who received their interval supplements this month across all barangays.</p>
+                    </div>
+                    <div class="filters-container">
+                        <select id="adminVitReportBrgyFilter" onchange="renderAdminVitaminReport()"></select>
+                        <button class="add-btn" style="background:#2196f3;" onclick="window.print()"><i class="fas fa-print"></i> Print Report</button>
+                    </div>
+                </header>
+
+                <section class="stats-cards">
+                    <div class="card normal">
+                        <div class="card-icon"><i class="fas fa-syringe" style="color: #2e7d32"></i></div>
+                        <div>
+                            <h4>Total Doses Administered This Month</h4>
+                            <p id="adminStatVitTotal" class="stat-num">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="list-section" style="padding: 10px;">
+                    <div class="report-table-wrapper">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Barangay</th>
+                                    <th>Purok / Sitio</th>
+                                    <th style="min-width: 140px;">Name of Child</th>
+                                    <th>Age <small>(mos)</small></th>
+                                    <th>Date Administered</th>
+                                    <th>Supplement Given</th>
+                                    <th>Dose Order</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-vit-reports-table-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
             
             <div id="map-view" class="view" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e5e5e5; z-index: 5;">
                 <div id="full-city-map" style="width: 100%; height: 100%; z-index: 1;"></div>
@@ -230,7 +259,7 @@
     </div>
 
     <div id="profileModal" class="modal-overlay">
-        <div class="modal-content profile-modal-width">
+        <div class="modal-content profile-modal-width" style="max-width: 500px;">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <div id="modal-data"></div>
         </div>

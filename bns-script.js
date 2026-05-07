@@ -21,39 +21,55 @@ function calculateAgeInMonths(birthdateStr) {
 function computeWFA(weight, ageMonths) {
     if (!weight) return "Pending";
     let expectedW = ageMonths * 0.2 + 3.5; 
-    if (weight < expectedW - 3) return "SUW"; // Severely Underweight
-    if (weight < expectedW - 1.5) return "UW"; // Underweight
-    if (weight > expectedW + 3) return "OW"; // Overweight
-    return "N"; // Normal
+    if (weight < expectedW - 3) return "SUW"; 
+    if (weight < expectedW - 1.5) return "UW"; 
+    if (weight > expectedW + 3) return "OW"; 
+    return "N"; 
 }
 
 function computeHFA(height, ageMonths) {
     if (!height) return "Pending";
     let expectedH = ageMonths * 1.5 + 48;
-    if (height < expectedH - 6) return "SST"; // Severely Stunted
-    if (height < expectedH - 3) return "ST"; // Stunted
-    if (height > expectedH + 5) return "T"; // Tall
-    return "N"; // Normal
+    if (height < expectedH - 6) return "SST"; 
+    if (height < expectedH - 3) return "ST"; 
+    if (height > expectedH + 5) return "T"; 
+    return "N"; 
 }
 
 function computeWFLH(weight, height) {
     if (!weight || !height) return "Pending";
     let hM = height / 100;
     let bmi = weight / (hM * hM);
-    if (bmi < 12.0) return "SW"; // Severely Wasted
-    if (bmi < 13.5) return "MW"; // Moderately Wasted
-    if (bmi > 18.5) return "OB"; // Obese
-    if (bmi > 17.0) return "OW"; // Overweight
-    return "N"; // Normal
+    if (bmi < 12.0) return "SW"; 
+    if (bmi < 13.5) return "MW"; 
+    if (bmi > 18.5) return "OB"; 
+    if (bmi > 17.0) return "OW"; 
+    return "N"; 
 }
 
-function getVitaminsByAge(ageMonths) {
-    if (ageMonths <= 6) return ["Vitamin A (100k IU)", "Newborn Screening"];
-    if (ageMonths <= 23) return ["Vitamin A (200k IU)", "Iron Drops", "Deworming"];
-    return ["Vitamin A (High Dose)", "Deworming", "Zinc Supplement"];
+// NEW VITAMIN ELIGIBILITY LOGIC
+function getVitaminEligibility(ageMonths) {
+    let elig = { dueVitA: false, vitADose: 0, dueDeworm: false, dewormDose: 0 };
+    if (ageMonths >= 6 && ageMonths % 6 === 0) {
+        elig.dueVitA = true;
+        elig.vitADose = ageMonths / 6;
+    }
+    if (ageMonths >= 12 && ageMonths % 6 === 0) {
+        elig.dueDeworm = true;
+        elig.dewormDose = (ageMonths / 6) - 1;
+    }
+    return elig;
 }
 
-// MOCK DATA GENERATION - Strict 15 Children Array matching the prompt's layout
+function ordinalSuffix(i) {
+    let j = i % 10, k = i % 100;
+    if (j == 1 && k != 11) return i + "st";
+    if (j == 2 && k != 12) return i + "nd";
+    if (j == 3 && k != 13) return i + "rd";
+    return i + "th";
+}
+
+// MOCK DATA GENERATION
 function generateMockData() {
     const firstNames = ["James Andrei", "Rayvin", "Dylan Charles", "Ethan Jake", "Weldion", "Carlo", "Wilford", "Princess Ann", "Clyde Allen", "Clyde Yohann", "Andrei Shann", "Enzo Mateo", "Craige Anthony", "Liana", "Mia"];
     const lastNames = ["Gomez", "Castromero", "Macalalad", "Perez", "Dela Cuesta", "Castromero", "Dela Cuesta", "Castromero", "Natividad", "De Padua", "Baon", "Macalalad", "Sale", "Santos", "Reyes"];
@@ -64,16 +80,21 @@ function generateMockData() {
     for(let i=0; i<15; i++) {
         const bDate = new Date();
         let ageMonths = Math.floor(Math.random() * 40) + 12; 
+        
+        // Force specific ages for demo purposes
+        if(i === 0) ageMonths = 6;
+        if(i === 1) ageMonths = 12;
+        if(i === 2) ageMonths = 18;
+        if(i === 3) ageMonths = 24;
+        if(i === 4) ageMonths = 12;
+
         bDate.setMonth(bDate.getMonth() - ageMonths);
         const bdateStr = bDate.toISOString().split('T')[0];
-        
         const gender = (i === 7 || i >= 13) ? "Female" : "Male";
         
         let expectedW = ageMonths * 0.2 + 3.5; 
         let expectedH = ageMonths * 1.5 + 48;
-        
-        let w = expectedW;
-        let h = expectedH;
+        let w = expectedW; let h = expectedH;
 
         if (conditions[i] === "UW") { w = expectedW - 2.0; }
         else if (conditions[i] === "OW") { w = expectedW + 3.5; }
@@ -82,7 +103,6 @@ function generateMockData() {
         else if (conditions[i] === "MW") { w = expectedW - 2.5; h = expectedH + 2.0; }
 
         let historyRecords = [];
-        
         let isPendingThisMonth = i >= 12; 
 
         if (!isPendingThisMonth) {
@@ -93,9 +113,15 @@ function generateMockData() {
                 height: h.toFixed(1),
                 wfa: computeWFA(w, ageMonths),
                 hfa: computeHFA(h, ageMonths),
-                wflh: computeWFLH(w, h),
-                vitamins: ["Vitamin A (200k IU)", "Iron Drops"] // Updated sample
+                wflh: computeWFLH(w, h)
             });
+        }
+
+        // Mock Vitamin Admin History
+        let vitRecords = [];
+        if(i === 4) { // Simulate kid who already got their dose this month
+             vitRecords.push({ month: currentMonthString, date: currentMonthString + "-05", type: "Vitamin A", dose: 2 });
+             vitRecords.push({ month: currentMonthString, date: currentMonthString + "-05", type: "Deworming", dose: 1 });
         }
 
         childrenData.push({
@@ -105,7 +131,8 @@ function generateMockData() {
             birthdate: bdateStr,
             parents: parentNames[i].toUpperCase(),
             purok: "PUROK " + (Math.floor(i/3) + 1),
-            records: historyRecords
+            records: historyRecords,
+            vitaminRecords: vitRecords
         });
     }
 }
@@ -118,7 +145,6 @@ function renderMasterlist() {
     const tableBody = document.getElementById('bns-table-body');
     
     let filtered = childrenData;
-
     if (searchStr) filtered = filtered.filter(k => k.name.toLowerCase().includes(searchStr));
     if (filterPurok !== 'all') filtered = filtered.filter(k => k.purok === filterPurok.toUpperCase());
     if (filterStatus !== 'all') {
@@ -150,8 +176,6 @@ function renderMasterlist() {
             </tr>
         `;
     }).join('');
-    
-    renderReports();
 }
 
 // ADD NEW CHILD
@@ -175,7 +199,8 @@ function submitNewChild(e) {
         birthdate: document.getElementById('add-bday').value,
         parents: document.getElementById('add-parents').value.toUpperCase(),
         purok: document.getElementById('add-purok').value.toUpperCase(),
-        records: [] 
+        records: [],
+        vitaminRecords: [] 
     };
     childrenData.unshift(newKid); 
     closeModal('addChildModal');
@@ -240,7 +265,7 @@ function saveChildEdits(e) {
     alert("Child Information Updated!");
 }
 
-// MONTHLY ASSESSMENT (COMPACTED TO AVOID OVERFLOWING THE SCREEN)
+// MONTHLY ASSESSMENT (Vitamin Tracking Removed completely)
 function setupAssessmentTab(kid, age) {
     const latestRecord = kid.records[kid.records.length - 1];
     const isCheckedThisMonth = latestRecord && latestRecord.month === currentMonthString;
@@ -249,11 +274,9 @@ function setupAssessmentTab(kid, age) {
 
     if (isCheckedThisMonth) {
         banner.className = "status-banner success";
-        banner.style.marginBottom = "10px"; // Compacted
+        banner.style.marginBottom = "10px"; 
         banner.innerHTML = `<i class="fas fa-check-circle"></i> <b>Assessment Completed!</b>`;
         
-        let vitList = latestRecord.vitamins && latestRecord.vitamins.length > 0 ? latestRecord.vitamins.join(", ") : "None Recorded";
-
         formContainer.innerHTML = `
             <div class="info-box" style="padding: 15px; margin-bottom: 10px;">
                 <p style="margin-bottom: 5px;"><strong>Weight:</strong> ${latestRecord.weight} kg | <strong>Height:</strong> ${latestRecord.height} cm</p>
@@ -261,14 +284,12 @@ function setupAssessmentTab(kid, age) {
                 <p style="margin-bottom: 3px; font-size:13px;"><strong>WFA:</strong> <span style="color:${latestRecord.wfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wfa}</span></p>
                 <p style="margin-bottom: 3px; font-size:13px;"><strong>HFA:</strong> <span style="color:${latestRecord.hfa==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.hfa}</span></p>
                 <p style="margin-bottom: 3px; font-size:13px;"><strong>WFL/H:</strong> <span style="color:${latestRecord.wflh==='N'?'#2e7d32':'#d32f2f'}">${latestRecord.wflh}</span></p>
-                <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
-                <p style="font-size:13px;"><strong>Vitamins Given:</strong> ${vitList}</p>
             </div>
             <p style="font-size:11px; color:#666; text-align:center;">Next checkup is available next month.</p>
         `;
     } else {
         banner.className = "status-banner warning";
-        banner.style.marginBottom = "10px"; // Compacted
+        banner.style.marginBottom = "10px"; 
         banner.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <b>Pending Checkup</b>`;
         
         formContainer.innerHTML = `
@@ -283,7 +304,7 @@ function setupAssessmentTab(kid, age) {
                     <input type="number" step="0.1" id="assess-height" placeholder="e.g. 75.0" style="padding: 8px;" oninput="autoComputeStatus(${age})">
                 </div>
             </div>
-            <div class="info-box" style="margin-bottom: 10px; padding: 10px; text-align:center;">
+            <div class="info-box" style="margin-bottom: 15px; padding: 10px; text-align:center;">
                 <span class="info-label" style="margin-bottom: 0;">Computed Nutritional Status</span>
                 <div style="display: flex; justify-content: space-around; margin-top: 5px;">
                     <div><small>WFA</small><br><strong id="comp-wfa">--</strong></div>
@@ -291,34 +312,14 @@ function setupAssessmentTab(kid, age) {
                     <div><small>WFL/H</small><br><strong id="comp-wflh">--</strong></div>
                 </div>
             </div>
-            <h4 style="margin-bottom: 5px; font-size:14px;">Vitamins Checklist</h4>
-            <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-end;">
-                <div class="input-group" style="margin-bottom: 0; flex-grow: 1;">
-                    <input type="text" id="custom-vit-input" placeholder="Add specific vitamin..." style="padding: 8px;">
-                </div>
-                <button type="button" class="view-btn" style="padding: 8px 12px;" onclick="addCustomVitamin()">+ Add</button>
-            </div>
-            <div id="vitamins-checkboxes" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"></div>
             <button class="add-btn" style="width:100%; padding: 12px;" onclick="submitAssessment(${age})">Save Monthly Assessment</button>
         `;
-
-        const vits = getVitaminsByAge(age);
-        const vitContainer = document.getElementById('vitamins-checkboxes');
-        
-        vitContainer.innerHTML = vits.map((v, i) => `
-            <div class="vit-label-container" style="font-size:12px;">
-                <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer;">
-                    <input type="checkbox" value="${v}" class="vit-check" checked> ${v}
-                </label>
-            </div>
-        `).join('');
     }
 }
 
 function autoComputeStatus(ageMonths) {
     const w = parseFloat(document.getElementById('assess-weight').value);
     const h = parseFloat(document.getElementById('assess-height').value);
-    
     if (w) document.getElementById('comp-wfa').innerText = computeWFA(w, ageMonths);
     if (h) document.getElementById('comp-hfa').innerText = computeHFA(h, ageMonths);
     if (w && h) document.getElementById('comp-wflh').innerText = computeWFLH(w, h);
@@ -329,46 +330,19 @@ function submitAssessment(ageMonths) {
     const h = parseFloat(document.getElementById('assess-height').value);
     if(!w || !h) return alert("Please input both weight and height.");
 
-    const checkboxes = document.querySelectorAll('.vit-check:checked');
-    let selectedVits = Array.from(checkboxes).map(cb => cb.value);
-
     const kid = childrenData.find(k => k.id === currentEditingId);
     kid.records.push({
         month: currentMonthString,
         dateMeasured: new Date().toISOString().split('T')[0],
-        weight: w,
-        height: h,
+        weight: w, height: h,
         wfa: computeWFA(w, ageMonths),
         hfa: computeHFA(h, ageMonths),
-        wflh: computeWFLH(w, h),
-        vitamins: selectedVits
+        wflh: computeWFLH(w, h)
     });
 
     renderMasterlist();
     closeModal('childProfileModal');
     alert("Monthly Assessment Saved!");
-}
-
-function addCustomVitamin() {
-    const input = document.getElementById('custom-vit-input');
-    const val = input.value.trim();
-    if(val === "") return;
-
-    const vitContainer = document.getElementById('vitamins-checkboxes');
-    const uniqueId = 'custom-vit-' + Date.now();
-    
-    const newDiv = document.createElement('div');
-    newDiv.className = 'vit-label-container';
-    newDiv.style.fontSize = '12px';
-    newDiv.id = uniqueId;
-    newDiv.innerHTML = `
-        <label style="display:flex; align-items:center; gap:5px; margin:0; cursor:pointer;">
-            <input type="checkbox" value="${val}" class="vit-check" checked> ${val}
-        </label>
-        <button type="button" class="remove-vit-btn" style="border:none; background:none; color:red; cursor:pointer; font-weight:bold;" onclick="document.getElementById('${uniqueId}').remove()">&times;</button>
-    `;
-    vitContainer.appendChild(newDiv);
-    input.value = ""; 
 }
 
 // HISTORY TAB 
@@ -378,14 +352,11 @@ function populateHistoryTab(kid) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history available.</td></tr>`;
         return;
     }
-    
     const recordsToShow = [...kid.records].reverse().slice(0, 5);
-    
     tbody.innerHTML = recordsToShow.map(rec => {
         let colWFA = rec.wfa === 'N' ? '#2e7d32' : '#d32f2f';
         let colHFA = rec.hfa === 'N' ? '#2e7d32' : '#d32f2f';
         let colWFLH = rec.wflh === 'N' ? '#2e7d32' : '#d32f2f';
-        
         return `
             <tr>
                 <td><strong>${rec.month}</strong></td>
@@ -398,7 +369,7 @@ function populateHistoryTab(kid) {
     }).join('');
 }
 
-// REPORTS GENERATION 
+// REPORTS GENERATION (Vitamins Column completely removed)
 function getStatusBadge(status) {
     if (status === "N") return `<span class="badge-status badge-normal">N</span>`;
     if (["OW", "OB", "T"].includes(status)) return `<span class="badge-status badge-warning">${status}</span>`;
@@ -408,7 +379,6 @@ function getStatusBadge(status) {
 
 function renderReports() {
     const selectedMonth = document.getElementById('reportMonthFilter').value || currentMonthString;
-    
     let total = childrenData.length;
     let normal = 0, mal = 0, obese = 0;
     let reportListHTML = "";
@@ -423,7 +393,6 @@ function renderReports() {
         let hfa = monthRecord ? monthRecord.hfa : "Pending";
         let wflh = monthRecord ? monthRecord.wflh : "Pending";
         let dateMeasured = monthRecord && monthRecord.dateMeasured ? monthRecord.dateMeasured : "--";
-        let vits = monthRecord && monthRecord.vitamins ? monthRecord.vitamins : [];
 
         if (monthRecord) {
             if (wfa === "N" && hfa === "N" && wflh === "N") {
@@ -437,36 +406,8 @@ function renderReports() {
         const formatBtnDate = (dStr) => {
             if(!dStr || dStr === "--") return "--";
             const date = new Date(dStr);
-            const m = date.toLocaleString('default', { month: 'short' });
-            return `${m}-${String(date.getDate()).padStart(2, '0')}-${date.getFullYear()}`;
+            return `${date.toLocaleString('default', { month: 'short' })}-${String(date.getDate()).padStart(2, '0')}-${date.getFullYear()}`;
         };
-
-        const dobFmt = formatBtnDate(kid.birthdate);
-        const domFmt = formatBtnDate(dateMeasured);
-        const sexFmt = kid.gender === "Male" ? "M" : "F";
-
-        // Generate Vitamin Display logic matching the masterlist visual style
-        let vitDisplay = "--";
-        if (monthRecord) {
-            const requiredVits = getVitaminsByAge(age);
-            
-            if (vits.length >= requiredVits.length) {
-                vitDisplay = `<span class="badge complete" style="font-size:10px; padding: 4px 8px;"><i class="fas fa-check"></i> Complete</span>`;
-            } else {
-                vitDisplay = requiredVits.map(v => {
-                    let took = vits.includes(v);
-                    return `<div style="color: ${took ? '#2e7d32' : '#c62828'}; font-size: 10px; margin-bottom: 2px;">
-                                <i class="fas ${took ? 'fa-check' : 'fa-times'}"></i> ${v}
-                            </div>`;
-                }).join('');
-                
-                // Show any additional/custom vitamins taken
-                const customVits = vits.filter(v => !requiredVits.includes(v));
-                if (customVits.length > 0) {
-                    vitDisplay += customVits.map(v => `<div style="color: #2e7d32; font-size: 10px; margin-bottom: 2px;"><i class="fas fa-check"></i> ${v}</div>`).join('');
-                }
-            }
-        }
 
         reportListHTML += `
             <tr>
@@ -474,16 +415,15 @@ function renderReports() {
                 <td>${kid.parents}</td>
                 <td><strong>${kid.name}</strong></td>
                 <td>NO</td>
-                <td>${sexFmt}</td>
-                <td>${dobFmt}</td>
-                <td>${domFmt}</td>
+                <td>${kid.gender === "Male" ? "M" : "F"}</td>
+                <td>${formatBtnDate(kid.birthdate)}</td>
+                <td>${formatBtnDate(dateMeasured)}</td>
                 <td><strong>${w}</strong></td>
                 <td><strong>${h}</strong></td>
                 <td>${age}</td>
                 <td>${getStatusBadge(wfa)}</td>
                 <td>${getStatusBadge(hfa)}</td>
                 <td>${getStatusBadge(wflh)}</td>
-                <td>${vitDisplay}</td>
             </tr>
         `;
     });
@@ -492,8 +432,8 @@ function renderReports() {
     document.getElementById('rep-normal').innerText = normal;
     document.getElementById('rep-mal').innerText = mal;
     document.getElementById('rep-obese').innerText = obese;
-    // Updated colspan to 14 to fit the new vitamins column
-    document.getElementById('reports-table-body').innerHTML = reportListHTML || `<tr><td colspan="14" style="text-align:center;">No records for this month.</td></tr>`;
+    // Colspan updated to 13 because Vitamins column was removed
+    document.getElementById('reports-table-body').innerHTML = reportListHTML || `<tr><td colspan="13" style="text-align:center;">No records for this month.</td></tr>`;
 }
 
 function submitReportToAdmin() {
@@ -501,20 +441,130 @@ function submitReportToAdmin() {
     alert(`Report for ${selectedMonth} has been submitted to the Admin successfully!`);
 }
 
+// NEW VITAMIN COMPLIANCE TRACKING VIEW
+function renderVitaminsView() {
+    const filterPurok = document.getElementById('vitPurokFilter').value;
+    const tableBody = document.getElementById('vitamins-table-body');
+    
+    let filtered = filterPurok === 'all' ? childrenData : childrenData.filter(k => k.purok === filterPurok.toUpperCase());
+    let dueVitACount = 0; let dueDewormCount = 0;
+    let html = "";
+
+    filtered.forEach(kid => {
+        const age = calculateAgeInMonths(kid.birthdate);
+        const elig = getVitaminEligibility(age);
+        
+        let showRow = false;
+        
+        // Determine Vit A Status & Button
+        let vitABadge = `<span class="badge-status badge-pending">Not eligible</span>`;
+        if (elig.dueVitA) {
+            const alreadyGot = kid.vitaminRecords.find(v => v.month === currentMonthString && v.type === "Vitamin A");
+            if(alreadyGot) {
+                vitABadge = `<span class="badge-status badge-normal"><i class="fas fa-check"></i> Compliant</span>`;
+            } else {
+                dueVitACount++; showRow = true;
+                vitABadge = `<button class="add-btn" style="background:#f57c00; padding:5px 10px; font-size:11px;" onclick="administerVitamin('${kid.id}', 'Vitamin A', ${elig.vitADose})">Mark ${ordinalSuffix(elig.vitADose)} Dose</button>`;
+            }
+        }
+
+        // Determine Deworming Status & Button
+        let dewormBadge = `<span class="badge-status badge-pending">Not eligible</span>`;
+        if (elig.dueDeworm) {
+            const alreadyGot = kid.vitaminRecords.find(v => v.month === currentMonthString && v.type === "Deworming");
+            if(alreadyGot) {
+                dewormBadge = `<span class="badge-status badge-normal"><i class="fas fa-check"></i> Compliant</span>`;
+            } else {
+                dueDewormCount++; showRow = true;
+                dewormBadge = `<button class="add-btn" style="background:#d32f2f; padding:5px 10px; font-size:11px;" onclick="administerVitamin('${kid.id}', 'Deworming', ${elig.dewormDose})">Mark ${ordinalSuffix(elig.dewormDose)} Dose</button>`;
+            }
+        }
+
+        if (showRow) {
+            html += `
+                <tr>
+                    <td>${kid.purok}</td>
+                    <td><strong>${kid.name}</strong></td>
+                    <td>${age}</td>
+                    <td>${vitABadge}</td>
+                    <td>${dewormBadge}</td>
+                </tr>
+            `;
+        }
+    });
+
+    document.getElementById('statDueVitA').innerText = dueVitACount;
+    document.getElementById('statDueDeworm').innerText = dueDewormCount;
+    tableBody.innerHTML = html || `<tr><td colspan="5" style="text-align:center;">All children are up to date on interval vitamins!</td></tr>`;
+}
+
+function administerVitamin(kidId, type, doseNumber) {
+    const kid = childrenData.find(k => k.id === kidId);
+    kid.vitaminRecords.push({
+        month: currentMonthString,
+        date: new Date().toISOString().split('T')[0],
+        type: type,
+        dose: doseNumber
+    });
+    
+    alert(`${type} (${ordinalSuffix(doseNumber)} Dose) administered successfully!`);
+    renderVitaminsView();
+    renderVitaminReport();
+}
+
+// NEW VITAMIN REPORT GENERATION
+function renderVitaminReport() {
+    const selectedMonth = document.getElementById('vitReportMonthFilter').value || currentMonthString;
+    const tbody = document.getElementById('vit-reports-table-body');
+    
+    let html = "";
+    let totalAdministered = 0;
+    
+    childrenData.forEach(kid => {
+        if(kid.vitaminRecords) {
+            kid.vitaminRecords.forEach(rec => {
+                if(rec.month === selectedMonth) {
+                    totalAdministered++;
+                    const age = calculateAgeInMonths(kid.birthdate);
+                    html += `
+                        <tr>
+                            <td>${kid.purok}</td>
+                            <td><strong>${kid.name}</strong></td>
+                            <td>${age}</td>
+                            <td>${rec.date}</td>
+                            <td><span class="badge complete"><i class="fas fa-pills"></i> ${rec.type}</span></td>
+                            <td><strong>${ordinalSuffix(rec.dose)} Dose</strong></td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+    });
+    
+    document.getElementById('vit-rep-total').innerText = totalAdministered;
+    tbody.innerHTML = html || `<tr><td colspan="6" style="text-align:center;">No interval supplements administered this month.</td></tr>`;
+}
+
+// GLOBAL VIEW ROUTER
 function switchBNSView(view) {
     document.getElementById('masterlist-view').style.display = view === 'masterlist' ? 'block' : 'none';
     document.getElementById('reports-view').style.display = view === 'reports' ? 'block' : 'none';
-    const menuItems = document.querySelectorAll('#sidebar-menu li');
+    document.getElementById('vitamins-view').style.display = view === 'vitamins' ? 'block' : 'none';
+    document.getElementById('vit-reports-view').style.display = view === 'vit-reports' ? 'block' : 'none';
+    
+    const menuItems = document.querySelectorAll('#sidebar-menu li:not(.logout-item)');
     menuItems.forEach(item => item.classList.remove('active'));
-    menuItems[view === 'masterlist' ? 0 : 1].classList.add('active');
+    
+    if (view === 'masterlist') menuItems[0].classList.add('active');
+    else if (view === 'reports') { menuItems[1].classList.add('active'); renderReports(); }
+    else if (view === 'vitamins') { menuItems[2].classList.add('active'); renderVitaminsView(); }
+    else if (view === 'vit-reports') { menuItems[3].classList.add('active'); renderVitaminReport(); }
 }
 
 function switchProfileTab(tab) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-    
     document.getElementById(`tab-${tab}`).classList.add('active');
-    
     const tabButtons = document.querySelectorAll('.tab-btn');
     if (tab === 'info') tabButtons[0].classList.add('active');
     else if (tab === 'assessment') tabButtons[1].classList.add('active');
@@ -524,9 +574,8 @@ function switchProfileTab(tab) {
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if(document.getElementById('reportMonthFilter')) {
-        document.getElementById('reportMonthFilter').value = currentMonthString;
-    }
+    if(document.getElementById('reportMonthFilter')) document.getElementById('reportMonthFilter').value = currentMonthString;
+    if(document.getElementById('vitReportMonthFilter')) document.getElementById('vitReportMonthFilter').value = currentMonthString;
     generateMockData();
     renderMasterlist();
 });
