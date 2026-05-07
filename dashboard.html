@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weigh To Go - Dashboard</title>
+    <title>Weigh To Go - Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -57,25 +57,28 @@
 
                 <section class="stats-cards">
                     <div class="card normal">
-                        <div class="card-icon"><i class="fas fa-heart" style="color:#2e7d32"></i></div>
-                        <div>
-                            <h4>Normal (N)</h4>
+                        <div class="card-info">
+                            <h4>Healthy / Normal</h4>
                             <p id="statNormal" class="stat-num">0</p>
+                            <span class="card-subtitle">Children within range</span>
                         </div>
+                        <div class="card-icon"><i class="fas fa-shield-heart"></i></div>
                     </div>
                     <div class="card mal">
-                        <div class="card-icon"><i class="fas fa-exclamation-triangle" style="color:#d32f2f"></i></div>
-                        <div>
-                            <h4>Deficit (UW/MW/ST)</h4>
+                        <div class="card-info">
+                            <h4>Deficit Status</h4>
                             <p id="statMal" class="stat-num">0</p>
+                            <span class="card-subtitle">UW / MW / Stunted</span>
                         </div>
+                        <div class="card-icon"><i class="fas fa-arrow-trend-down"></i></div>
                     </div>
                     <div class="card obese">
-                        <div class="card-icon"><i class="fas fa-hamburger" style="color:#f9a825"></i></div>
-                        <div>
-                            <h4>Excess (OW/OB/T)</h4>
+                        <div class="card-info">
+                            <h4>Excess Status</h4>
                             <p id="statObese" class="stat-num">0</p>
+                            <span class="card-subtitle">OW / OB / Tall</span>
                         </div>
+                        <div class="card-icon"><i class="fas fa-weight-scale"></i></div>
                     </div>
                 </section>
 
@@ -120,13 +123,13 @@
                 </header>
 
                 <section class="stats-cards">
-                    <div class="card normal">
-                        <div class="card-icon"><i class="fas fa-users" style="color:#2e7d32"></i></div>
-                        <div>
-                            <h4>Total Registered (Filtered)</h4>
+                    <div class="card info">
+                        <div class="card-info">
+                            <h4>Total Registered</h4>
                             <p id="statTotalRecords" class="stat-num">0</p>
-                            <small>Children in current view</small>
+                            <span class="card-subtitle">Filtered child masterlist view</span>
                         </div>
+                        <div class="card-icon"><i class="fas fa-users"></i></div>
                     </div>
                 </section>
 
@@ -216,11 +219,12 @@
 
                 <section class="stats-cards">
                     <div class="card normal">
-                        <div class="card-icon"><i class="fas fa-syringe" style="color: #2e7d32"></i></div>
-                        <div>
-                            <h4>Total Doses Administered This Month</h4>
+                        <div class="card-info">
+                            <h4>Total Doses Administered</h4>
                             <p id="adminStatVitTotal" class="stat-num">0</p>
+                            <span class="card-subtitle">Across selected barangays this month</span>
                         </div>
+                        <div class="card-icon"><i class="fas fa-prescription-bottle-medical"></i></div>
                     </div>
                 </section>
 

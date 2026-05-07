@@ -1,5 +1,5 @@
 // Balayan, Batangas Configuration
-const balayanCenter = [13.938, 120.732];
+const balayanCenter = [13.945, 120.732]; // Adjusted center slightly north for better view
 const balayanBrgys = [
   "Caloocan", "Lanatan", "San Roque", "Ermita", "Gumamela", 
   "Navotas", "Palikpikan", "Sampaga", "Santol", "San Pioquinto", 
@@ -72,16 +72,32 @@ function ordinalSuffix(i) {
     return i + "th";
 }
 
+// =======================================================
+// ACCURATE & SPACED BARANGAY COORDINATES (Balayan Area)
+// =======================================================
+const brgyCoords = {
+  "Caloocan": [13.9413, 120.7262], // Near Poblacion west
+  "Lanatan": [13.9515, 120.7198],  // Northwest
+  "San Roque": [13.9450, 120.7330], // Central Poblacion
+  "Ermita": [13.9376, 120.7322],    // Central / South Poblacion
+  "Gumamela": [13.9560, 120.7410],  // North east
+  "Navotas": [13.9312, 120.7205],   // Coastal west
+  "Palikpikan": [13.9430, 120.7480],// East side
+  "Sampaga": [13.9620, 120.7350],   // Further north
+  "Santol": [13.9580, 120.7550],    // Northeast bounds
+  "San Pioquinto": [13.9490, 120.7100], // Far west
+  "Dalig": [13.9680, 120.7450],     // North / East
+  "Langgangan": [13.9330, 120.7440],// Southeast
+  "Canda": [13.9210, 120.7320],     // Deep south / coastal
+  "Pooc": [13.9750, 120.7280],      // Far North
+  "Tanggoy": [13.9530, 120.7650]    // Far East
+};
+
 // GENERATE CONTROLLED MASTER DATA
 const masterData = {};
-const brgyCoords = {};
 
 balayanBrgys.forEach((brgy, index) => {
   masterData[brgy] = [];
-  brgyCoords[brgy] = [
-    balayanCenter[0] + (Math.random() * 0.08 - 0.04),
-    balayanCenter[1] + (Math.random() * 0.08 - 0.04)
-  ];
 
   let conditions = [];
   if (index === 0) {
@@ -140,10 +156,9 @@ balayanBrgys.forEach((brgy, index) => {
     if (["UW", "SUW"].includes(wfa) || ["ST", "SST"].includes(hfa) || ["MW", "SW"].includes(wflh)) overall = "Malnourished";
     if (["OB", "OW"].includes(wflh) || wfa === "OW") overall = "Obese";
 
-    // GENERATE MOCK VITAMIN DATA FOR ADMIN VIEW (simulating BNS submission)
+    // MOCK VITAMIN DATA FOR ADMIN VIEW
     let vitRecords = [];
     if (Math.random() > 0.7) { 
-        // 30% chance a kid received something this month to show data in report
         if (age >= 6) vitRecords.push({ month: currentMonthString, date: currentMonthString + "-05", type: "Vitamin A", dose: Math.max(1, Math.floor(age/6)) });
         if (age >= 12 && Math.random() > 0.5) vitRecords.push({ month: currentMonthString, date: currentMonthString + "-05", type: "Deworming", dose: Math.max(1, Math.floor(age/6) - 1) });
     }
@@ -240,16 +255,27 @@ function initFilters() {
   });
 }
 
-// MAP LOGIC
+// ==========================================
+// MAP LOGIC WITH FIXED LABELS & COORDINATES
+// ==========================================
 let fullMap;
 function initFullMap() {
   const mapEl = document.getElementById("full-city-map");
   if (!mapEl) return;
 
+  // Initialize Map focused on Balayan, Batangas
   fullMap = L.map("full-city-map").setView(balayanCenter, 13);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { attribution: "&copy; OpenStreetMap" }).addTo(fullMap);
+  
+  // Standard OpenStreetMap Leaflet Tile Layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(fullMap);
 
   balayanBrgys.forEach((brgy) => {
+    // Failsafe in case coordinates are missing
+    if(!brgyCoords[brgy]) return; 
+
     const kids = masterData[brgy];
     const normal = kids.filter((k) => k.overallStatus === "Normal").length;
     const mal = kids.filter((k) => k.overallStatus === "Malnourished").length;
@@ -259,15 +285,35 @@ function initFullMap() {
     const badCases = mal + obese;
     const caseRatio = badCases / totalKids;
 
-    let markerColor = "#2e7d32";
-    if (caseRatio >= 0.25) markerColor = "#d32f2f";
-    else if (caseRatio >= 0.15) markerColor = "#fbc02d";
+    let markerColor = "#2e7d32"; // Green for good
+    if (caseRatio >= 0.25) markerColor = "#d32f2f"; // Red for critical
+    else if (caseRatio >= 0.15) markerColor = "#fbc02d"; // Yellow for warning
 
-    L.circle(brgyCoords[brgy], { color: markerColor, fillColor: markerColor, fillOpacity: 0.5, radius: 500 }).addTo(fullMap);
+    // 1. Add the shaded radius circle representing the area
+    L.circle(brgyCoords[brgy], { 
+        color: markerColor, 
+        fillColor: markerColor, 
+        fillOpacity: 0.35, 
+        radius: 400 
+    }).addTo(fullMap);
+
+    // 2. Add the clickable pin marker
     const marker = L.marker(brgyCoords[brgy]).addTo(fullMap);
 
-    marker.bindTooltip(`Brgy. ${brgy}`, { permanent: true, direction: "bottom", className: "brgy-map-label", offset: [0, 5] }).openTooltip();
-    marker.on("click", () => { openInfoPanel(brgy, normal, mal, obese, badCases, markerColor, totalKids); });
+    // 3. Attach permanent tooltips (Labels) - anchored to the RIGHT side of the pin so it doesn't cover it
+    marker.bindTooltip(`Brgy. ${brgy}`, { 
+        permanent: true, 
+        direction: "right", 
+        className: "brgy-map-label", 
+        offset: [10, 0] // Pushes the label slightly to the right of the pin
+    }).openTooltip();
+
+    // 4. Attach click listener to open the AI Insight Side Panel
+    marker.on("click", () => { 
+        // Force map to pan slightly so the panel doesn't cover the clicked marker
+        fullMap.panTo([brgyCoords[brgy][0], brgyCoords[brgy][1] - 0.015]); 
+        openInfoPanel(brgy, normal, mal, obese, badCases, markerColor, totalKids); 
+    });
   });
 }
 
@@ -503,7 +549,7 @@ function updateReportsView() {
   tbody.innerHTML = reportListHTML || `<tr><td colspan="15">No records.</td></tr>`;
 }
 
-// NEW ADMIN VITAMIN REPORT LOGIC
+// ADMIN VITAMIN REPORT LOGIC
 function renderAdminVitaminReport() {
     if (!document.getElementById('adminVitReportBrgyFilter')) return;
 
@@ -513,7 +559,6 @@ function renderAdminVitaminReport() {
     let html = "";
     let totalAdministered = 0;
     
-    // Determine which barangays to loop through
     const targetBrgys = brgyFilter === "all" ? balayanBrgys : [brgyFilter];
 
     targetBrgys.forEach(brgy => {
